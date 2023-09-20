@@ -32,6 +32,7 @@ Menu, Tray, NoStandard ;不显示默认的AHK右键菜单
 Menu, Tray, Add, 使用教程, 使用教程 ;添加新的右键菜单
 Menu, Tray, Add, 画布设置, 画布设置 ;添加新的右键菜单
 Menu, Tray, Add, 快捷设置, 快捷设置 ;添加新的右键菜单
+Menu, Tray, Add, 开机自启, 开机自启 ;添加新的右键菜单
 Menu, Tray, Add, 退出软件, 退出软件 ;添加新的右键菜单
 
 色轮:=0 ;色轮是否打开
@@ -40,6 +41,18 @@ Menu, Tray, Add, 退出软件, 退出软件 ;添加新的右键菜单
 取色位置Y:=477
 色板位置:=1
 时间:=0
+
+autostartLnk:=A_StartupCommon . "\HighEfficiencyColorWheelForCSPv2.lnk" ;开机启动文件的路径
+IfExist, % autostartLnk ;检查开机启动的文件是否存在
+{
+  autostart:=1
+  Menu, Tray, Check, 开机自启 ;右键菜单打勾
+}
+else
+{
+  autostart:=0
+  Menu, Tray, UnCheck, 开机自启 ;右键菜单不打勾
+}
 
 IfExist, %A_ScriptDir%\色轮设置.ini ;如果配置文件存在则读取
 {
@@ -64,7 +77,7 @@ IfExist, %A_ScriptDir%\色轮设置.ini ;如果配置文件存在则读取
 }
 else
 {
-  色轮到笔刷距离:=300
+  色轮到笔刷距离:=200
   IniWrite, %色轮到笔刷距离%, 色轮设置.ini, 设置, 色轮到笔刷距离
   鼠标在色轮位置X1:=104
   IniWrite, %鼠标在色轮位置X1%, 色轮设置.ini, 设置, 鼠标在色轮位置X1
@@ -166,6 +179,39 @@ GuiEscape:
 GuiClose:
 色轮呼出快捷键:=旧色轮呼出快捷键
 Gui, 快捷键:Destroy
+return
+
+开机自启: ;模式切换
+Critical, On
+if (autostart=1) ;关闭开机自启动
+{
+  IfExist, % autostartLnk ;如果开机启动的文件存在
+  {
+    FileDelete, %autostartLnk% ;删除开机启动的文件
+  }
+  
+  autostart:=0
+  Menu, Tray, UnCheck, 开机自启 ;右键菜单不打勾
+}
+else ;开启开机自启动
+{
+  IfExist, % autostartLnk ;如果开机启动的文件存在
+  {
+    FileGetShortcut, %autostartLnkautostartLnk%, lnkTarget ;获取开机启动文件的信息
+    if (lnkTarget!=A_ScriptFullPath) ;如果启动文件执行的路径和当前脚本的完整路径不一致
+    {
+      FileCreateShortcut, %A_ScriptFullPath%, %autostartLnk%, %A_WorkingDir% ;将启动文件执行的路径改成和当前脚本的完整路径一致
+    }
+  }
+  else ;如果开机启动的文件不存在
+  {
+    FileCreateShortcut, %A_ScriptFullPath%, %autostartLnk%, %A_WorkingDir% ;创建和当前脚本的完整路径一致的启动文件
+  }
+  
+  autostart:=1
+  Menu, Tray, Check, 开机自启 ;右键菜单打勾
+}
+Critical, Off
 return
 
 退出软件:
