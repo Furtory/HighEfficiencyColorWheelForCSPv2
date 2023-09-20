@@ -30,17 +30,19 @@ SetWorkingDir %A_ScriptDir%
 Menu, Tray, Icon, %A_ScriptDir%\LOGO.ico
 Menu, Tray, NoStandard ;不显示默认的AHK右键菜单
 Menu, Tray, Add, 使用教程, 使用教程 ;添加新的右键菜单
+Menu, Tray, Add, 重置设置, 初始设置 ;添加新的右键菜单
+Menu, Tray, Add, 简体中文, 语言设置 ;添加新的右键菜单
 Menu, Tray, Add, 画布设置, 画布设置 ;添加新的右键菜单
 Menu, Tray, Add, 快捷设置, 快捷设置 ;添加新的右键菜单
+Menu, Tray, Add, 色环矫正, 色环矫正 ;添加新的右键菜单
 Menu, Tray, Add, 开机自启, 开机自启 ;添加新的右键菜单
+Menu, Tray, Add, 重启软件, 重启软件 ;添加新的右键菜单
 Menu, Tray, Add, 退出软件, 退出软件 ;添加新的右键菜单
 
 色轮:=0 ;色轮是否打开
-色轮位置X补偿:=12
-色轮位置Y补偿:=0
 取色位置Y:=477
 色板位置:=1
-时间:=0
+色环矫正:=0
 
 autostartLnk:=A_StartupCommon . "\HighEfficiencyColorWheelForCSPv2.lnk" ;开机启动文件的路径
 IfExist, % autostartLnk ;检查开机启动的文件是否存在
@@ -65,7 +67,9 @@ IfExist, %A_ScriptDir%\色轮设置.ini ;如果配置文件存在则读取
   IniRead, 色板2色相角度, 色轮设置.ini, 设置, 色板2色相角度
   IniRead, 色轮宽度W, 色轮设置.ini, 设置, 色轮宽度W
   IniRead, 色轮高度H, 色轮设置.ini, 设置, 色轮高度H
-  IniRead, 色轮位置Y补偿, 色轮设置.ini, 设置, 色轮位置Y补偿
+  IniRead, 全屏色轮位置X补偿, 色轮设置.ini, 设置, 全屏色轮位置X补偿
+  IniRead, 全屏色轮位置Y补偿, 色轮设置.ini, 设置, 全屏色轮位置Y补偿
+  IniRead, 色轮位置X补偿, 色轮设置.ini, 设置, 色轮位置X补偿
   IniRead, 色轮位置Y补偿, 色轮设置.ini, 设置, 色轮位置Y补偿
   IniRead, 画布左上角X, 色轮设置.ini, 设置, 画布左上角X
   IniRead, 画布左上角Y, 色轮设置.ini, 设置, 画布左上角Y
@@ -74,6 +78,12 @@ IfExist, %A_ScriptDir%\色轮设置.ini ;如果配置文件存在则读取
   IniRead, 色板1取色颜色, 色轮设置.ini, 设置, 色板1取色颜色
   IniRead, 色板2取色颜色, 色轮设置.ini, 设置, 色板2取色颜色
   IniRead, 色轮呼出快捷键, 色轮设置.ini, 设置, 色轮呼出快捷键
+  IniRead, 简体中文, 色轮设置.ini, 设置, 简体中文
+  IniRead, 初始设置, 色轮设置.ini, 设置, 初始设置
+  if (简体中文=1)
+  {
+    Menu, Tray, Check, 简体中文 ;右键菜单打勾
+  }
 }
 else
 {
@@ -95,13 +105,17 @@ else
   色轮高度H:=Round(A_ScreenHeight*(495/1080))
   IniWrite, %色轮宽度W%, 色轮设置.ini, 设置, 色轮宽度W
   IniWrite, %色轮高度H%, 色轮设置.ini, 设置, 色轮高度H
+  全屏色轮位置X补偿:=0
+  全屏色轮位置Y补偿:=0
+  IniWrite, %全屏色轮位置X补偿%, 色轮设置.ini, 设置, 全屏色轮位置X补偿
+  IniWrite, %全屏色轮位置Y补偿%, 色轮设置.ini, 设置, 全屏色轮位置Y补偿
   色轮位置X补偿:=0
   色轮位置Y补偿:=0
   IniWrite, %色轮位置X补偿%, 色轮设置.ini, 设置, 色轮位置X补偿
   IniWrite, %色轮位置Y补偿%, 色轮设置.ini, 设置, 色轮位置Y补偿
-  画布左上角X:=A_ScreenWidth/8
+  画布左上角X:=Round(A_ScreenWidth/8)
   画布左上角Y:=0
-  画布右下角X:=A_ScreenWidth-A_ScreenWidth/8
+  画布右下角X:=A_ScreenWidth-Round(A_ScreenWidth/8)
   画布右下角Y:=A_ScreenHeight
   IniWrite, %画布左上角X%, 色轮设置.ini, 设置, 画布左上角X
   IniWrite, %画布左上角Y%, 色轮设置.ini, 设置, 画布左上角Y
@@ -111,43 +125,78 @@ else
   色板2取色颜色:=0xFFFFFF
   IniWrite, %色板1取色颜色%, 色轮设置.ini, 设置, 色板1取色颜色
   IniWrite, %色板2取色颜色%, 色轮设置.ini, 设置, 色板2取色颜色
-  gosub 使用教程
-  gosub 快捷设置
+  goto 初始设置
 }
 return
 
-Numpad0::Reload
+重启软件:
+Reload
 
-使用教程:
-MsgBox, , 德芙色轮, 黑钨重工出品 免费开源 请勿商用 侵权必究`n`n目前仅支持1080p屏幕 100`%缩放`nCSP v2版本 请使用HSV色轮`n请在数位板设置中关闭Windows Ink功能`n`n按住Tab键触发德芙色轮`nW 切换色板`nQ和E 控制色相慢速左旋和右旋`nA和D 控制色相快速左旋和右旋`n松开Tab完成取色`n`n如果无法触发建议手动设置一次画布范围`n更多细节设置看ini文件修改`n支持有偿适配你的分辨率OWO`n`n更多免费教程尽在QQ群 1群763625227 2群643763519
+初始设置:
+初始设置:=0
+IniWrite, %初始设置%, 色轮设置.ini, 设置, 初始设置
+MsgBox 0, 初始设置, 很高兴见到你嗷OwO`~我是CSP色轮小管家.`n检测到是初次使用`,请根我的据提示完成初始设置`!
+MsgBox 4, 初始设置, 请问CSP的界面语言是否是繁体中文嗷`?`-w`-
+IfMsgBox No
+{
+  简体中文:=1
+  Menu, Tray, Check, 简体中文 ;右键菜单打勾
+  IniWrite, %简体中文%, 色轮设置.ini, 设置, 简体中文
+}
+else
+{
+  简体中文:=0
+  IniWrite, %简体中文%, 色轮设置.ini, 设置, 简体中文
+}
+MsgBox 4, 初始设置, 接下来要设置在画布的多大范围内按下Tab才能呼出色轮嗷`!`n如果不知道这项设置是什么`,可以点击否先使用默认设置`,以后右键状态栏中可以再找到画布设置`.
+IfMsgBox Yes
+{
+  goto 画布设置
+}
+goto 快捷设置
+return
+
+语言设置:
+if (简体中文=0)
+{
+  简体中文:=1
+  Menu, Tray, Check, 简体中文 ;右键菜单打勾
+  IniWrite, %简体中文%, 色轮设置.ini, 设置, 简体中文
+}
+else
+{
+  简体中文:=0
+  Menu, Tray, UnCheck, 简体中文 ;右键菜单不打勾
+  IniWrite, %简体中文%, 色轮设置.ini, 设置, 简体中文
+}
 return
 
 画布设置:
 KeyWait, LButton
 loop
 {
-  ToolTip 按下鼠标左键设置画布左上角
-  if GetKeyState("LButton", "P")
+  ToolTip 按下鼠标右键设置画布左上角
+  if GetKeyState("RButton", "P")
   {
     CoordMode, Mouse, Screen
     MouseGetPos, 画布左上角X, 画布左上角Y
     IniWrite, %画布左上角X%, 色轮设置.ini, 设置, 画布左上角X
     IniWrite, %画布左上角Y%, 色轮设置.ini, 设置, 画布左上角Y
-    KeyWait, LButton
+    KeyWait, RButton
     break
   }
   Sleep 10
 }
 loop
 {
-  ToolTip 按下鼠标左键设置画布右下角
-  if GetKeyState("LButton", "P")
+  ToolTip 按下鼠标右键设置画布右下角
+  if GetKeyState("RButton", "P")
   {
     CoordMode, Mouse, Screen
     MouseGetPos, 画布右下角X, 画布右下角Y
     IniWrite, %画布右下角X%, 色轮设置.ini, 设置, 画布右下角X
     IniWrite, %画布右下角Y%, 色轮设置.ini, 设置, 画布右下角Y
-    KeyWait, LButton
+    KeyWait, RButton
     break
   }
   Sleep 10
@@ -155,9 +204,17 @@ loop
 ToolTip, 画布范围设置完成`n画布左上角 X%画布左上角X% Y%画布左上角Y%`n画布右下角 X%画布右下角X% %画布右下角Y%
 Sleep 1000
 ToolTip
+if (初始设置=0)
+{
+  goto 快捷设置
+}
 return
 
 快捷设置:
+if (初始设置=0)
+{
+  MsgBox 0, 初始设置, 咱要知道CSP设置中呼出色轮的快捷键是什么才能运行嗷`~如果没有设置请现在设置一个才能运行哦`!`n设置的位置在`:文件`-快捷键设置`-弹出式面板`-色環
+}
 旧色轮呼出快捷键:=色轮呼出快捷键
 Gui 快捷键:+DPIScale -MinimizeBox -MaximizeBox -Resize -SysMenu
 Gui 快捷键:Font, s9, Segoe UI
@@ -168,10 +225,20 @@ Gui 快捷键:Add, Button, x87 y58 w80 h23 GButton取消, &取消
 Gui 快捷键:Show, w174 h95, 快捷键设置
 return
 
+使用教程:
+MsgBox, , 德芙色轮, 黑钨重工出品 免费开源 请勿商用 侵权必究`n`n目前仅支持1080p屏幕 100`%缩放`nCSP v2版本 请使用HSV色轮`nCSP需要设置呼出色轮的快捷键`n设置的位置在`:文件`-快捷键设置`-弹出式面板`-色環`n请在数位板设置中关闭Windows Ink功能`n画布设置的意思是`:`n画布的多大范围内按下Tab才能呼出色轮`n如果取色环显示位置不准`n请打开色环矫正后使用上下左右箭头修正`n`n按住Tab键触发德芙色轮`nW 切换色板`nQ和E 控制色相慢速左旋和右旋`nA和D 控制色相快速左旋和右旋`n松开Tab完成取色`n`n更多详细设置看ini文件修改`n如果更新后无法运行请删除ini文件后重新运行本软件`n`n更多免费教程尽在QQ群 1群763625227 2群643763519
+return
+
 Button确认:
 Gui, 快捷键:Submit, NoHide
 Gui, 快捷键:Destroy
-IniWrite, %色轮呼出快捷键%, Settings.ini, 设置, 色轮呼出快捷键 ;写入设置到ini文件
+IniWrite, %色轮呼出快捷键%, 色轮设置.ini, 设置, 色轮呼出快捷键 ;写入设置到ini文件
+if (初始设置=0)
+{
+  初始设置:=1
+  IniWrite, %初始设置%, 色轮设置.ini, 设置, 初始设置
+  goto 使用教程
+}
 return
 
 Button取消:
@@ -216,6 +283,99 @@ return
 
 退出软件:
 ExitApp
+
+色环矫正:
+if (色环矫正=0)
+{
+  Menu, Tray, Check, 色环矫正 ;右键菜单打勾
+  色环矫正:=1
+  Hotkey, Up, 上
+  Hotkey, Down, 下
+  Hotkey, Left, 左
+  Hotkey, Right, 右
+}
+else
+{
+  Menu, Tray, UnCheck, 色环矫正 ;右键菜单不打勾
+  色环矫正:=0
+  Hotkey, Up, Off
+  Hotkey, Down, Off
+  Hotkey, Left, Off
+  Hotkey, Right, Off
+}
+return
+
+上:
+if (色轮=1)
+{
+  if (全屏=1)
+  {
+    全屏色轮位置Y补偿:=全屏色轮位置Y补偿-1
+    IniWrite, %全屏色轮位置Y补偿%, 色轮设置.ini, 设置, 全屏色轮位置Y补偿
+    WinMove 取色环, , 鼠标在屏幕位置X-61-移动画布距离+全屏色轮位置X补偿, 鼠标在屏幕位置Y-36+全屏色轮位置Y补偿
+  }
+  else
+  {
+    色轮位置Y补偿:=色轮位置Y补偿-1
+    IniWrite, %色轮位置Y补偿%, 色轮设置.ini, 设置, 色轮位置Y补偿
+    WinMove 取色环, , 鼠标在屏幕位置X-61-移动画布距离+色轮位置X补偿, 鼠标在屏幕位置Y-36+色轮位置Y补偿
+  }
+}
+return
+
+下:
+if (色轮=1)
+{
+  if (全屏=1)
+  {
+    全屏色轮位置Y补偿:=全屏色轮位置Y补偿+1
+    IniWrite, %全屏色轮位置Y补偿%, 色轮设置.ini, 设置, 全屏色轮位置Y补偿
+    WinMove 取色环, , 鼠标在屏幕位置X-61-移动画布距离+全屏色轮位置X补偿, 鼠标在屏幕位置Y-36+全屏色轮位置Y补偿
+  }
+  else
+  {
+    色轮位置Y补偿:=色轮位置Y补偿+1
+    IniWrite, %色轮位置Y补偿%, 色轮设置.ini, 设置, 色轮位置Y补偿
+    WinMove 取色环, , 鼠标在屏幕位置X-61-移动画布距离+色轮位置X补偿, 鼠标在屏幕位置Y-36+色轮位置Y补偿
+  }
+}
+return
+
+左:
+if (色轮=1)
+{
+  if (全屏=1)
+  {
+    全屏色轮位置X补偿:=全屏色轮位置X补偿-1
+    IniWrite, %全屏色轮位置X补偿%, 色轮设置.ini, 设置, 全屏色轮位置X补偿
+    WinMove 取色环, , 鼠标在屏幕位置X-61-移动画布距离+全屏色轮位置X补偿, 鼠标在屏幕位置Y-36+全屏色轮位置Y补偿
+  }
+  else
+  {
+    色轮位置X补偿:=色轮位置X补偿-1
+    IniWrite, %色轮位置X补偿%, 色轮设置.ini, 设置, 色轮位置X补偿
+    WinMove 取色环, , 鼠标在屏幕位置X-61-移动画布距离+色轮位置X补偿, 鼠标在屏幕位置Y-36+色轮位置Y补偿
+  }
+}
+return
+
+右:
+if (色轮=1)
+{
+  if (全屏=1)
+  {
+    全屏色轮位置X补偿:=全屏色轮位置X补偿+1
+    IniWrite, %全屏色轮位置X补偿%, 色轮设置.ini, 设置, 全屏色轮位置X补偿
+    WinMove 取色环, , 鼠标在屏幕位置X-61-移动画布距离+全屏色轮位置X补偿, 鼠标在屏幕位置Y-36+全屏色轮位置Y补偿
+  }
+  else
+  {
+    色轮位置X补偿:=色轮位置X补偿+1
+    IniWrite, %色轮位置X补偿%, 色轮设置.ini, 设置, 色轮位置X补偿
+    WinMove 取色环, , 鼠标在屏幕位置X-61-移动画布距离+色轮位置X补偿, 鼠标在屏幕位置Y-36+色轮位置Y补偿
+  }
+}
+return
 
 ToBase(n,b){
     return (n < b ? "" : ToBase(n//b,b)) . ((d:=Mod(n,b)) < 10 ? d : Chr(d+55))
@@ -290,11 +450,16 @@ BlockInput, MouseMove
 CoordMode, Pixel, Screen
 
  ;识别是否全屏
-ImageSearch, , , 0, 0, A_ScreenWidth, A_ScreenHeight, *30 %A_ScriptDir%\全屏识别.png
-if (ErrorLevel=0) ;不是全屏
+ImageSearch, ISX, ISY, 0, 0, A_ScreenWidth, A_ScreenHeight, *10 %A_ScriptDir%\全屏识别.png
+if (ErrorLevel=0) ;是全屏
 {
+  ; ToolTip %ISX% %ISY% 是全屏
   Send {Tab} ;进入全屏
   全屏:=1
+}
+else
+{
+  全屏:=0
 }
 
  ;向左移动画布
@@ -319,24 +484,60 @@ MouseMove, 移动画布距离, 0, 0, R
  ;打开色轮并检测是否打开
 Send %色轮呼出快捷键% ;打开色轮
 开始计时:=A_TickCount
-loop ;寻找色轮
+if (简体中文=1)
 {
-  寻找耗时:=A_TickCount-开始计时
-  ; ToolTip 寻找色轮中%寻找耗时%ms
-  if !(WinExist("色轮")=0) ;""内填窗口名称
+  loop ;寻找色轮
   {
-    色轮:=1
-    色轮窗口ID:=WinExist("色轮") ;""内填窗口名称
-    ; ToolTip 已找到色轮
-    break
+    寻找耗时:=A_TickCount-开始计时
+    ; ToolTip 寻找色轮中%寻找耗时%ms
+    if !(WinExist("色轮")=0) ;""内填窗口名称
+    {
+      色轮:=1
+      色轮窗口ID:=WinExist("色轮") ;""内填窗口名称
+      ; ToolTip 已找到色轮
+      break
+    }
+    else if (寻找耗时>500)
+    {
+      色轮:=0
+      BlockInput, Off
+      BlockInput, MouseMoveOff
+      loop 100
+      {
+        ToolTip 未找到色轮 请检查呼出色轮快捷键设置是否正确
+        Sleep 30
+      }
+      ToolTip
+      return
+    }
   }
-  else if (寻找耗时>500)
+}
+else
+{
+  loop ;寻找色轮
   {
-    色轮:=0
-    BlockInput, Off
-    BlockInput, MouseMoveOff
-    ToolTip 未找到色轮
-    return
+    寻找耗时:=A_TickCount-开始计时
+    ; ToolTip 寻找色轮中%寻找耗时%ms
+    if !(WinExist("色環")=0) ;""内填窗口名称
+    {
+      色轮:=1
+      色轮窗口ID:=WinExist("色環") ;""内填窗口名称
+      ; ToolTip 已找到色轮
+      break
+    }
+    else if (寻找耗时>500)
+    {
+      色轮:=0
+      BlockInput, Off
+      BlockInput, MouseMoveOff
+      loop 100
+      {
+        ToolTip 未找到色轮 请检查呼出色轮快捷键设置是否正确
+        Sleep 30
+      }
+      ToolTip
+      return
+    }
   }
 }
 
@@ -348,7 +549,14 @@ WinSet, Style, -0xC00000, 取色环 ;去除标题
 WinSet, Region, 25-0 W74 H74 E, 取色环 ;圆形窗口
 Gui, 取色环:Add, Picture, X25 Y0 BackgroundTrans, %A_ScriptDir%\取色环.png
 WinSet, TransColor, cccccc, 取色环 ;透明化
-WinMove 取色环, , 鼠标在屏幕位置X-62-移动画布距离+色轮位置X补偿, 鼠标在屏幕位置Y-37+色轮位置Y补偿
+if (全屏=1)
+{
+  WinMove 取色环, , 鼠标在屏幕位置X-61-移动画布距离+全屏色轮位置X补偿, 鼠标在屏幕位置Y-36+全屏色轮位置Y补偿
+}
+else ;if (全屏=0)
+{
+  WinMove 取色环, , 鼠标在屏幕位置X-61-移动画布距离+色轮位置X补偿, 鼠标在屏幕位置Y-36+色轮位置Y补偿
+}
 Gui, 取色环:Color, 0xffffff ;色环颜色
 
  ;查看正在使用哪个色板
@@ -416,7 +624,14 @@ else if (色板位置=2)
   色轮位置X:=Round(鼠标在屏幕位置X-鼠标在色轮位置X2)
   色轮位置Y:=Round(鼠标在屏幕位置Y-鼠标在色轮位置Y2)
 }
-WinMove, 色轮, , 色轮位置X, 色轮位置Y, 色轮宽度W, 色轮高度H ;移动色轮窗口位置
+if (简体中文=1)
+{
+  WinMove, 色轮, , 色轮位置X, 色轮位置Y, 色轮宽度W, 色轮高度H ;移动色轮窗口位置
+}
+else
+{
+  WinMove, 色環, , 色轮位置X, 色轮位置Y, 色轮宽度W, 色轮高度H ;移动色轮窗口位置
+}
 
  ;调整取色环颜色并监控热键
 Send {LButton Down} ;开始取色
@@ -648,7 +863,14 @@ else if (色板位置=2)
 
 CoordMode, Mouse, Screen
 MouseGetPos, 鼠标在屏幕位置X, 鼠标在屏幕位置Y
-WinGetPos, 色轮在屏幕位置X, 色轮在屏幕位置Y, , , 色轮
+if (简体中文=1)
+{
+  WinGetPos, 色轮在屏幕位置X, 色轮在屏幕位置Y, , , 色轮
+}
+else
+{
+  WinGetPos, 色轮在屏幕位置X, 色轮在屏幕位置Y, , , 色環
+}
 ; ToolTip %色轮在屏幕位置X% %色轮在屏幕位置Y%
 if (色板位置=1)
 {
@@ -662,7 +884,14 @@ if (色板位置=1)
   Sleep 10
   色轮位置X:=Round(鼠标在屏幕位置X-鼠标在色轮位置X2)
   色轮位置Y:=Round(鼠标在屏幕位置Y-鼠标在色轮位置Y2)
-  WinMove, 色轮, , 色轮位置X, 色轮位置Y, 色轮宽度W, 色轮高度H ;移动色轮窗口位置
+  if (简体中文=1)
+  {
+    WinMove, 色轮, , 色轮位置X, 色轮位置Y, 色轮宽度W, 色轮高度H ;移动色轮窗口位置
+  }
+  else
+  {
+    WinMove, 色環, , 色轮位置X, 色轮位置Y, 色轮宽度W, 色轮高度H ;移动色轮窗口位置
+  }
   MouseMove, 鼠标在屏幕位置X, 鼠标在屏幕位置Y, 0
   Sleep 10
   Send {LButton Down}
@@ -679,7 +908,14 @@ else
   Sleep 10
   色轮位置X:=Round(鼠标在屏幕位置X-鼠标在色轮位置X1)
   色轮位置Y:=Round(鼠标在屏幕位置Y-鼠标在色轮位置Y1)
-  WinMove, 色轮, , 色轮位置X, 色轮位置Y, 色轮宽度W, 色轮高度H ;移动色轮窗口位置
+  if (简体中文=1)
+  {
+    WinMove, 色轮, , 色轮位置X, 色轮位置Y, 色轮宽度W, 色轮高度H ;移动色轮窗口位置
+  }
+  else
+  {
+    WinMove, 色環, , 色轮位置X, 色轮位置Y, 色轮宽度W, 色轮高度H ;移动色轮窗口位置
+  }
   MouseMove, 鼠标在屏幕位置X, 鼠标在屏幕位置Y, 0
   Sleep 10
   Send {LButton Down}
@@ -700,7 +936,14 @@ BlockInput MouseMove
 Send {LButton Up}
 CoordMode, Mouse, Screen
 MouseGetPos, 鼠标在屏幕位置记忆X, 鼠标在屏幕位置记忆Y
-WinGetPos, 色轮在屏幕位置X, 色轮在屏幕位置Y, , , 色轮
+if (简体中文=1)
+{
+  WinGetPos, 色轮在屏幕位置X, 色轮在屏幕位置Y, , , 色轮
+}
+else
+{
+  WinGetPos, 色轮在屏幕位置X, 色轮在屏幕位置Y, , , 色環
+}
 圆心坐标X:=Round(色轮在屏幕位置X+色轮宽度W/2)
 圆心坐标Y:=Round(色轮在屏幕位置Y+色轮宽度W/2)+13
 圆的半径:=色轮宽度W/2-10
@@ -740,7 +983,14 @@ BlockInput MouseMove
 Send {LButton Up}
 CoordMode, Mouse, Screen
 MouseGetPos, 鼠标在屏幕位置记忆X, 鼠标在屏幕位置记忆Y
-WinGetPos, 色轮在屏幕位置X, 色轮在屏幕位置Y, , , 色轮
+if (简体中文=1)
+{
+  WinGetPos, 色轮在屏幕位置X, 色轮在屏幕位置Y, , , 色轮
+}
+else
+{
+  WinGetPos, 色轮在屏幕位置X, 色轮在屏幕位置Y, , , 色環
+}
 圆心坐标X:=Round(色轮在屏幕位置X+色轮宽度W/2)
 圆心坐标Y:=Round(色轮在屏幕位置Y+色轮宽度W/2)+12
 圆的半径:=色轮宽度W/2-10
@@ -780,7 +1030,14 @@ BlockInput MouseMove
 Send {LButton Up}
 CoordMode, Mouse, Screen
 MouseGetPos, 鼠标在屏幕位置记忆X, 鼠标在屏幕位置记忆Y
-WinGetPos, 色轮在屏幕位置X, 色轮在屏幕位置Y, , , 色轮
+if (简体中文=1)
+{
+  WinGetPos, 色轮在屏幕位置X, 色轮在屏幕位置Y, , , 色轮
+}
+else
+{
+  WinGetPos, 色轮在屏幕位置X, 色轮在屏幕位置Y, , , 色環
+}
 圆心坐标X:=Round(色轮在屏幕位置X+色轮宽度W/2)
 圆心坐标Y:=Round(色轮在屏幕位置Y+色轮宽度W/2)+12
 圆的半径:=色轮宽度W/2-10
@@ -820,7 +1077,14 @@ BlockInput MouseMove
 Send {LButton Up}
 CoordMode, Mouse, Screen
 MouseGetPos, 鼠标在屏幕位置记忆X, 鼠标在屏幕位置记忆Y
-WinGetPos, 色轮在屏幕位置X, 色轮在屏幕位置Y, , , 色轮
+if (简体中文=1)
+{
+  WinGetPos, 色轮在屏幕位置X, 色轮在屏幕位置Y, , , 色轮
+}
+else
+{
+  WinGetPos, 色轮在屏幕位置X, 色轮在屏幕位置Y, , , 色環
+}
 圆心坐标X:=Round(色轮在屏幕位置X+色轮宽度W/2)
 圆心坐标Y:=Round(色轮在屏幕位置Y+色轮宽度W/2)+12
 圆的半径:=色轮宽度W/2-10
