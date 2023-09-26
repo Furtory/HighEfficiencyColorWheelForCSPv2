@@ -35,14 +35,18 @@ Menu, Tray, Add, 简体中文, 语言设置 ;添加新的右键菜单
 Menu, Tray, Add, 画布设置, 画布设置 ;添加新的右键菜单
 Menu, Tray, Add, 快捷设置, 快捷设置 ;添加新的右键菜单
 Menu, Tray, Add, 色环矫正, 色环矫正 ;添加新的右键菜单
+Menu, Tray, Add, 记忆模式, 记忆模式 ;添加新的右键菜单
 Menu, Tray, Add, 开机自启, 开机自启 ;添加新的右键菜单
 Menu, Tray, Add, 重启软件, 重启软件 ;添加新的右键菜单
 Menu, Tray, Add, 退出软件, 退出软件 ;添加新的右键菜单
 
 色轮:=0 ;色轮是否打开
+调色盘:=0 ;调色盘是否打开
 取色位置Y:=477
 色板位置:=1
 色环矫正:=0
+色相慢左旋:=0
+色相慢右旋:=0
 
 autostartLnk:=A_StartupCommon . "\HighEfficiencyColorWheelForCSPv2.lnk" ;开机启动文件的路径
 IfExist, % autostartLnk ;检查开机启动的文件是否存在
@@ -77,13 +81,35 @@ IfExist, %A_ScriptDir%\色轮设置.ini ;如果配置文件存在则读取
   IniRead, 画布右下角Y, 色轮设置.ini, 设置, 画布右下角Y
   IniRead, 色板1取色颜色, 色轮设置.ini, 设置, 色板1取色颜色
   IniRead, 色板2取色颜色, 色轮设置.ini, 设置, 色板2取色颜色
+  IniRead, 调色盘笔刷样式, 色轮设置.ini, 设置, 调色盘笔刷样式
+  IniRead, 调色盘笔刷大小, 色轮设置.ini, 设置, 调色盘笔刷大小
   IniRead, 色轮呼出快捷键, 色轮设置.ini, 设置, 色轮呼出快捷键
+  快捷键1:=色轮呼出快捷键
+  Ctrl键1:=InStr(快捷键1, "^")
+  Shift键1:=InStr(快捷键1, "+")
+  Alt键1:=InStr(快捷键1, "!")
+  快捷键1:=StrReplace(快捷键1,"^")
+  快捷键1:=StrReplace(快捷键1,"+")
+  快捷键1:=StrReplace(快捷键1,"!")
+  IniRead, 调色盘呼出快捷键, 色轮设置.ini, 设置, 调色盘呼出快捷键
+  快捷键2:=调色盘呼出快捷键
+  Ctrl键2:=InStr(快捷键2, "^")
+  Shift键2:=InStr(快捷键2, "+")
+  Alt键2:=InStr(快捷键2, "!")
+  快捷键2:=StrReplace(快捷键2,"^")
+  快捷键2:=StrReplace(快捷键2,"+")
+  快捷键2:=StrReplace(快捷键2,"!")
   IniRead, 简体中文, 色轮设置.ini, 设置, 简体中文
-  IniRead, 初始设置, 色轮设置.ini, 设置, 初始设置
   if (简体中文=1)
   {
     Menu, Tray, Check, 简体中文 ;右键菜单打勾
   }
+  IniRead, 记忆模式, 色轮设置.ini, 设置, 记忆模式
+  if (记忆模式=1)
+  {
+    Menu, Tray, Check, 记忆模式 ;右键菜单打勾
+  }
+  IniRead, 初始设置, 色轮设置.ini, 设置, 初始设置
 }
 else
 {
@@ -125,12 +151,15 @@ else
   色板2取色颜色:=0xFFFFFF
   IniWrite, %色板1取色颜色%, 色轮设置.ini, 设置, 色板1取色颜色
   IniWrite, %色板2取色颜色%, 色轮设置.ini, 设置, 色板2取色颜色
+  记忆模式:=0
+  IniWrite, %记忆模式%, 色轮设置.ini, 设置, 记忆模式
+  调色盘笔刷样式:=0
+  IniWrite, %调色盘笔刷样式%, 色轮设置.ini, 设置, 调色盘笔刷样式
+  调色盘笔刷大小:=0
+  IniWrite, %调色盘笔刷大小%, 色轮设置.ini, 设置, 调色盘笔刷大小
   goto 初始设置
 }
 return
-
-重启软件:
-Reload
 
 初始设置:
 初始设置:=0
@@ -168,6 +197,47 @@ else
   简体中文:=0
   Menu, Tray, UnCheck, 简体中文 ;右键菜单不打勾
   IniWrite, %简体中文%, 色轮设置.ini, 设置, 简体中文
+}
+return
+
+记忆模式:
+if (记忆模式=0)
+{
+  记忆模式:=1
+  Menu, Tray, Check, 记忆模式 ;右键菜单打勾
+  IniWrite, %记忆模式%, 色轮设置.ini, 设置, 记忆模式
+  if GetKeyState("s", "P")
+  {
+    loop 100
+    {
+      ToolTip 记忆模式已开启
+      if !GetKeyState("Tab", "P")
+      {
+        break
+      }
+      Sleep 15
+    }
+  }
+  ToolTip
+}
+else
+{
+  记忆模式:=0
+  Menu, Tray, UnCheck, 记忆模式 ;右键菜单不打勾
+  IniWrite, %记忆模式%, 色轮设置.ini, 设置, 记忆模式
+  if GetKeyState("s", "P")
+  {
+    loop 100
+    {
+      ToolTip 记忆模式已关闭
+      if !GetKeyState("Tab", "P")
+      {
+        break
+      }
+      Sleep 15
+    }
+  }
+  ToolTip
 }
 return
 
@@ -210,29 +280,47 @@ if (初始设置=0)
 }
 return
 
+使用教程:
+MsgBox, , 德芙色轮, 黑钨重工出品 免费开源 请勿商用 侵权必究`n`n目前仅支持1080p屏幕 100`%缩放`nCSP v2版本 请使用HSV色轮`nCSP需要设置呼出色轮的快捷键`n设置的位置在`:文件`-快捷键设置`-弹出式面板`-色環`n请在数位板设置中关闭Windows Ink功能`n画布设置的意思是`:`n画布的多大范围内按下Tab才能呼出色轮`n如果取色环显示位置不准`n请打开色环矫正后使用上下左右箭头修正`n`n按住Tab键 或 鼠标中键 触发德芙色轮`nW 切换色板`nQ和E 或者 滚轮 控制色相慢速左旋和右旋`nA和D 控制色相快速左旋和右旋`n松开Tab 或 鼠标中键 完成取色`n`n按下S打开或关闭记忆模式`n每次打开色轮使用上次在色轮中取的色`n而不使用在画布上取的颜色`n当打开调色盘时`n重音符 清空调色盘`n数字1 短按撤回 长按还原`n数字2和数字3 控制笔刷大小`n数字4 切换笔刷样式`n`n更多详细设置看ini文件修改`n如果更新后无法运行请删除ini文件后重新运行本软件`n`n更多免费教程尽在QQ群 1群763625227 2群643763519
+return
+
 快捷设置:
 if (初始设置=0)
 {
-  MsgBox 0, 初始设置, 咱要知道CSP设置中呼出色轮的快捷键是什么才能运行嗷`~如果没有设置请现在设置一个才能运行哦`!`n设置的位置在`:文件`-快捷键设置`-弹出式面板`-色環
+  MsgBox 0, 初始设置, 咱要知道CSP设置中呼出色轮和调色盘的快捷键是什么才能运行嗷`~如果没有设置请现在设置一个才能运行哦`!`n设置的位置在`:文件`-快捷键设置`-主菜单`-窗口`-色環/色轮 色彩混合/混色
 }
 旧色轮呼出快捷键:=色轮呼出快捷键
+旧调色盘呼出快捷键:=调色盘呼出快捷键
 Gui 快捷键:+DPIScale -MinimizeBox -MaximizeBox -Resize -SysMenu
 Gui 快捷键:Font, s9, Segoe UI
-Gui 快捷键:Add, Hotkey, x9 y29 w157 h25 v色轮呼出快捷键, %色轮呼出快捷键%
+Gui 快捷键:Add, Hotkey, x9 y31 w157 h25 v色轮呼出快捷键, %色轮呼出快捷键%
+Gui 快捷键:Add, Hotkey, x9 y92 w157 h25 v调色盘呼出快捷键, %调色盘呼出快捷键%
 Gui 快捷键:Add, Text, x9 y7 w157 h20, 色轮呼出快捷键
-Gui 快捷键:Add, Button, x8 y58 w80 h23 GButton确认, &确认
-Gui 快捷键:Add, Button, x87 y58 w80 h23 GButton取消, &取消
-Gui 快捷键:Show, w174 h95, 快捷键设置
-return
-
-使用教程:
-MsgBox, , 德芙色轮, 黑钨重工出品 免费开源 请勿商用 侵权必究`n`n目前仅支持1080p屏幕 100`%缩放`nCSP v2版本 请使用HSV色轮`nCSP需要设置呼出色轮的快捷键`n设置的位置在`:文件`-快捷键设置`-弹出式面板`-色環`n请在数位板设置中关闭Windows Ink功能`n画布设置的意思是`:`n画布的多大范围内按下Tab才能呼出色轮`n如果取色环显示位置不准`n请打开色环矫正后使用上下左右箭头修正`n`n按住Tab键触发德芙色轮`nW 切换色板`nQ和E 控制色相慢速左旋和右旋`nA和D 控制色相快速左旋和右旋`n松开Tab完成取色`n`n更多详细设置看ini文件修改`n如果更新后无法运行请删除ini文件后重新运行本软件`n`n更多免费教程尽在QQ群 1群763625227 2群643763519
+Gui 快捷键:Add, Text, x9 y68 w157 h20, 调色盘呼出快捷键
+Gui 快捷键:Add, Button, x9 y126 w80 h23 GButton确认, &确认
+Gui 快捷键:Add, Button, x89 y126 w80 h23 GButton取消, &取消
+Gui 快捷键:Show, w174 h158, 快捷键设置
 return
 
 Button确认:
 Gui, 快捷键:Submit, NoHide
 Gui, 快捷键:Destroy
 IniWrite, %色轮呼出快捷键%, 色轮设置.ini, 设置, 色轮呼出快捷键 ;写入设置到ini文件
+快捷键1:=色轮呼出快捷键
+Ctrl键1:=InStr(快捷键1, "^")
+Shift键1:=InStr(快捷键1, "+")
+Alt键1:=InStr(快捷键1, "!")
+快捷键1:=StrReplace(快捷键1,"^")
+快捷键1:=StrReplace(快捷键1,"+")
+快捷键1:=StrReplace(快捷键1,"!")
+IniWrite, %调色盘呼出快捷键%, 色轮设置.ini, 设置, 调色盘呼出快捷键 ;写入设置到ini文件
+快捷键2:=调色盘呼出快捷键
+Ctrl键2:=InStr(快捷键2, "^")
+Shift键2:=InStr(快捷键2, "+")
+Alt键2:=InStr(快捷键2, "!")
+快捷键2:=StrReplace(快捷键2,"^")
+快捷键2:=StrReplace(快捷键2,"+")
+快捷键2:=StrReplace(快捷键2,"!")
 if (初始设置=0)
 {
   初始设置:=1
@@ -245,6 +333,7 @@ Button取消:
 GuiEscape:
 GuiClose:
 色轮呼出快捷键:=旧色轮呼出快捷键
+调色盘呼出快捷键:=旧调色盘呼出快捷键
 Gui, 快捷键:Destroy
 return
 
@@ -280,6 +369,9 @@ else ;开启开机自启动
 }
 Critical, Off
 return
+
+重启软件:
+Reload
 
 退出软件:
 ExitApp
@@ -392,6 +484,16 @@ if (色轮=0)
 }
 return
 
+$s::
+if (色轮=0)
+{
+  Send {s Down}
+  KeyWait, s
+  Send {s Up}
+  return
+}
+return
+
 $q::
 if (色轮=0)
 {
@@ -432,7 +534,8 @@ if (色轮=0)
 }
 return
 
-Tab:: ;Tab键
+$Tab:: ;Tab键
+$MButton:: ;中键
  ;检测鼠标是否在画布范围
 CoordMode, Mouse, Screen
 MouseGetPos, 鼠标在屏幕位置X, 鼠标在屏幕位置Y
@@ -476,13 +579,40 @@ else if (色板位置=2)
   移动画布距离:=0+色轮到笔刷距离+鼠标在色轮位置X2
 }
 MouseMove, -移动画布距离, 0, 0, R
-Sleep 30
+Sleep 10
 Send {LButton Up}
 Send {space Up}
 MouseMove, 移动画布距离, 0, 0, R
 
  ;打开色轮并检测是否打开
-Send %色轮呼出快捷键% ;打开色轮
+if (Ctrl键1!=0)
+{
+  Send {Ctrl Down}
+  Sleep 10
+}
+if (Shift键1!=0)
+{
+  Send {Shift Down}
+  Sleep 10
+}
+if (Alt键1!=0)
+{
+  Send {Alt Down}
+  Sleep 10
+}
+Send {%快捷键1%} ;打开色轮
+if (Ctrl键1!=0)
+{
+  Send {Ctrl Up}
+}
+if (Shift键1!=0)
+{
+  Send {Shift Up}
+}
+if (Alt键1!=0)
+{
+  Send {Alt Up}
+}
 开始计时:=A_TickCount
 if (简体中文=1)
 {
@@ -585,32 +715,78 @@ else
 }
 
  ;检测当前颜色和之前是否一致
-WinActivate 色轮
-CoordMode Pixel, Window
-PixelGetColor, 取色颜色, 取色位置X, 取色位置Y, RGB
-if (色板位置=1) and (取色颜色!=色板1取色颜色)
+if (简体中文=1)
 {
+  WinActivate 色轮
+  WinGetPos, 色轮在屏幕位置X, 色轮在屏幕位置Y, , , 色轮
+}
+else
+{
+  WinActivate 色環
+  WinGetPos, 色轮在屏幕位置X, 色轮在屏幕位置Y, , , 色環
+}
+if (记忆模式=1)
+{
+  取色颜色:=色板1取色颜色
   gosub 更新色板位置
   鼠标在色轮位置X1:=鼠标在色轮位置X
   鼠标在色轮位置Y1:=鼠标在色轮位置Y
   色板1色相角度:=色相角度
+  BlockInput MouseMove
+  CoordMode, Mouse, Screen
+  MouseGetPos, 鼠标在屏幕位置记忆X, 鼠标在屏幕位置记忆Y
+  圆心坐标X:=Round(色轮在屏幕位置X+色轮宽度W/2)
+  圆心坐标Y:=Round(色轮在屏幕位置Y+色轮宽度W/2)+13
+  圆的半径:=色轮宽度W/2-10
+  CoordMode, Mouse, Screen
+  if (色板位置=1)
+  {
+    IniWrite, %色板1色相角度%, 色轮设置.ini, 设置, 色板1色相角度
+  }
+  else if (色板位置=2)
+  {
+    IniWrite, %色板2色相角度%, 色轮设置.ini, 设置, 色板2色相角度
+  }
+  gosub 色相偏移
+  Send {LButton Up}
+  Sleep 10
+  CoordMode, Mouse, Screen
+  MouseMove, 鼠标在屏幕位置记忆X, 鼠标在屏幕位置记忆Y, 0
+  BlockInput MouseMoveOff
   
   IniWrite, %鼠标在色轮位置X1%, 色轮设置.ini, 设置, 鼠标在色轮位置X1
   IniWrite, %鼠标在色轮位置Y1%, 色轮设置.ini, 设置, 鼠标在色轮位置Y1
   IniWrite, %色板1色相角度%, 色轮设置.ini, 设置, 色板1色相角度
   IniWrite, %取色颜色%, 色轮设置.ini, 设置, 色板1取色颜色
 }
-else if (色板位置=2) and (取色颜色!=色板2取色颜色)
+else
 {
-  gosub 更新色板位置
-  鼠标在色轮位置X2:=鼠标在色轮位置X
-  鼠标在色轮位置Y2:=鼠标在色轮位置Y
-  色板2色相角度:=色相角度
-  
-  IniWrite, %鼠标在色轮位置X2%, 色轮设置.ini, 设置, 鼠标在色轮位置X2
-  IniWrite, %鼠标在色轮位置Y2%, 色轮设置.ini, 设置, 鼠标在色轮位置Y2
-  IniWrite, %色板2色相角度%, 色轮设置.ini, 设置, 色板2色相角度
-  IniWrite, %取色颜色%, 色轮设置.ini, 设置, 色板2取色颜色
+  CoordMode Pixel, Screen
+  PixelGetColor, 取色颜色, 色轮在屏幕位置X+取色位置X, 色轮在屏幕位置Y+取色位置Y, RGB
+  if (色板位置=1) and (取色颜色!=色板1取色颜色)
+  {
+    gosub 更新色板位置
+    鼠标在色轮位置X1:=鼠标在色轮位置X
+    鼠标在色轮位置Y1:=鼠标在色轮位置Y
+    色板1色相角度:=色相角度
+    
+    IniWrite, %鼠标在色轮位置X1%, 色轮设置.ini, 设置, 鼠标在色轮位置X1
+    IniWrite, %鼠标在色轮位置Y1%, 色轮设置.ini, 设置, 鼠标在色轮位置Y1
+    IniWrite, %色板1色相角度%, 色轮设置.ini, 设置, 色板1色相角度
+    IniWrite, %取色颜色%, 色轮设置.ini, 设置, 色板1取色颜色
+  }
+  else if (色板位置=2) and (取色颜色!=色板2取色颜色)
+  {
+    gosub 更新色板位置
+    鼠标在色轮位置X2:=鼠标在色轮位置X
+    鼠标在色轮位置Y2:=鼠标在色轮位置Y
+    色板2色相角度:=色相角度
+    
+    IniWrite, %鼠标在色轮位置X2%, 色轮设置.ini, 设置, 鼠标在色轮位置X2
+    IniWrite, %鼠标在色轮位置Y2%, 色轮设置.ini, 设置, 鼠标在色轮位置Y2
+    IniWrite, %色板2色相角度%, 色轮设置.ini, 设置, 色板2色相角度
+    IniWrite, %取色颜色%, 色轮设置.ini, 设置, 色板2取色颜色
+  }
 }
 
  ;移动色轮取色位置到鼠标下方
@@ -637,35 +813,91 @@ else
 Send {LButton Down} ;开始取色
 BlockInput, Off
 BlockInput, MouseMoveOff
+CoordMode Pixel, Screen
+鼠标取色位置X:=鼠标在屏幕位置X
+鼠标取色位置Y:=鼠标在屏幕位置Y
+手动取色:=0
 loop
 {
-  if !GetKeyState("Tab", "P")
+  CoordMode, Mouse, Screen
+  MouseGetPos, 调色盘检测X, 调色盘检测Y
+  if GetKeyState("LButton", "P")
   {
+    MouseGetPos, 鼠标取色位置X, 鼠标取色位置Y
+    手动取色:=1
+  }
+  else if (调色盘检测X>色轮位置X+(色轮宽度W-256)/2+256+20) and (调色盘!=1)
+  {
+    if (手动取色=0)
+    {
+      MouseGetPos, 鼠标当前位置X, 鼠标当前位置Y, 0
+      gosub 调色模式
+      BlockInput, On
+      BlockInput, MouseMove
+      MouseMove, 鼠标取色位置X, 鼠标取色位置Y, 0
+      Send {LButton}
+      MouseMove, 鼠标当前位置X+140, 鼠标当前位置Y, 0
+      BlockInput, Off
+      BlockInput, MouseMoveOff
+    }
+    else
+    {
+      gosub 调色模式
+    }
+  }
+  else if !GetKeyState("Tab", "P") and !GetKeyState("MButton", "P")
+  {
+    PixelGetColor, 取色颜色, 色轮位置X+取色位置X, 色轮位置Y+取色位置Y, RGB
     break
   }
   else if GetKeyState("w", "P")
   {
     gosub 切换色板
   }
-  else if GetKeyState("q", "P")
+  else if GetKeyState("s", "P")
+  {
+    gosub 记忆模式
+  }
+  else if GetKeyState("q", "P") or (色相慢左旋=1)
   {
     gosub 色相慢左旋
   }
-  else if GetKeyState("e", "P")
+  else if GetKeyState("e", "P") or (色相慢右旋=1)
   {
     gosub 色相慢右旋
   }
   else if GetKeyState("a", "P")
   {
     gosub 色相快左旋
-    Sleep 100
   }
   else if GetKeyState("d", "P")
   {
     gosub 色相快右旋
-    Sleep 100
   }
-  PixelGetColor, 取色颜色, 取色位置X, 取色位置Y, RGB
+  else if (调色盘=1)
+  {
+    if GetKeyState("``", "P")
+    {
+      gosub 清除调色盘
+    }
+    else if GetKeyState("1", "P")
+    {
+      gosub 撤回还原调色盘
+    }
+    else if GetKeyState("2", "P")
+    {
+      gosub 调色盘笔刷变小
+    }
+    else if GetKeyState("3", "P")
+    {
+      gosub 调色盘笔刷变大
+    }
+    else if GetKeyState("4", "P")
+    {
+      gosub 切换调色盘笔刷样式
+    }
+  }
+  PixelGetColor, 取色颜色, 色轮位置X+取色位置X, 色轮位置Y+取色位置Y, RGB
   Gui, 取色环:Color, %取色颜色% ;色环颜色
   Sleep 10
 }
@@ -676,6 +908,33 @@ CoordMode, Mouse, Window
 MouseGetPos, 鼠标在色轮位置X, 鼠标在色轮位置Y
 
  ;记录取色位置到配置文件
+if (调色盘=1)
+{
+  if (色板位置=1)
+  {
+    gosub 更新色板位置
+    鼠标在色轮位置X1:=鼠标在色轮位置X
+    鼠标在色轮位置Y1:=鼠标在色轮位置Y
+    色板1色相角度:=色相角度
+    
+    IniWrite, %鼠标在色轮位置X1%, 色轮设置.ini, 设置, 鼠标在色轮位置X1
+    IniWrite, %鼠标在色轮位置Y1%, 色轮设置.ini, 设置, 鼠标在色轮位置Y1
+    IniWrite, %色板1色相角度%, 色轮设置.ini, 设置, 色板1色相角度
+    IniWrite, %取色颜色%, 色轮设置.ini, 设置, 色板1取色颜色
+  }
+  else if (色板位置=2)
+  {
+    gosub 更新色板位置
+    鼠标在色轮位置X2:=鼠标在色轮位置X
+    鼠标在色轮位置Y2:=鼠标在色轮位置Y
+    色板2色相角度:=色相角度
+    
+    IniWrite, %鼠标在色轮位置X2%, 色轮设置.ini, 设置, 鼠标在色轮位置X2
+    IniWrite, %鼠标在色轮位置Y2%, 色轮设置.ini, 设置, 鼠标在色轮位置Y2
+    IniWrite, %色板2色相角度%, 色轮设置.ini, 设置, 色板2色相角度
+    IniWrite, %取色颜色%, 色轮设置.ini, 设置, 色板2取色颜色
+  }
+}
 if (色板位置=1)
 {
   鼠标在色轮位置X1:=鼠标在色轮位置X
@@ -733,13 +992,72 @@ MouseGetPos, 鼠标在屏幕位置X, 鼠标在屏幕位置Y
 BlockInput, On
 BlockInput, MouseMove
 Send {LButton Up} ;结束取色
-Send %色轮呼出快捷键% ;关闭色轮
-Sleep 50
+if (调色盘=1)
+{
+  调色盘:=0
+  if (Ctrl键2!=0)
+  {
+    Send {Ctrl Down}
+    Sleep 10
+  }
+  if (Shift键2!=0)
+  {
+    Send {Shift Down}
+    Sleep 10
+  }
+  if (Alt键2!=0)
+  {
+    Send {Alt Down}
+    Sleep 10
+  }
+  Send {%快捷键2%} ;关闭调色盘
+  if (Ctrl键2!=0)
+  {
+    Send {Ctrl Up}
+  }
+  if (Shift键2!=0)
+  {
+    Send {Shift Up}
+  }
+  if (Alt键2!=0)
+  {
+    Send {Alt Up}
+  }
+}
+if (Ctrl键1!=0)
+{
+  Send {Ctrl Down}
+  Sleep 10
+}
+if (Shift键1!=0)
+{
+  Send {Shift Down}
+  Sleep 10
+}
+if (Alt键1!=0)
+{
+  Send {Alt Down}
+  Sleep 10
+}
+Send {%快捷键1%} ;关闭色轮
+if (Ctrl键1!=0)
+{
+  Send {Ctrl Up}
+}
+if (Shift键1!=0)
+{
+  Send {Shift Up}
+}
+if (Alt键1!=0)
+{
+  Send {Alt Up}
+}
+Sleep 10
 Send {space Down}
 Send {LButton Down}
 CoordMode, Mouse, Screen
 MouseMove, 移动画布距离, 0, 0, R
-Sleep 50
+Sleep 10
 Send {LButton Up}
 Send {space Up}
 CoordMode, Pixel, Screen
@@ -931,7 +1249,119 @@ loop
 }
 return
 
+调色模式:
+Send {LButton Up}
+if (Ctrl键2!=0)
+{
+  Send {Ctrl Down}
+  Sleep 10
+}
+if (Shift键2!=0)
+{
+  Send {Shift Down}
+  Sleep 10
+}
+if (Alt键2!=0)
+{
+  Send {Alt Down}
+  Sleep 10
+}
+Send {%快捷键2%} ;打开调色盘
+if (Ctrl键2!=0)
+{
+  Send {Ctrl Up}
+}
+if (Shift键2!=0)
+{
+  Send {Shift Up}
+}
+if (Alt键2!=0)
+{
+  Send {Alt Up}
+}
+开始计时:=A_TickCount
+if (简体中文=1)
+{
+  loop ;寻找调色盘
+  {
+    寻找耗时:=A_TickCount-开始计时
+    ; ToolTip 寻找色轮中%寻找耗时%ms
+    if !(WinExist("混色")=0) ;""内填窗口名称
+    {
+      调色盘:=1
+      调色盘窗口ID:=WinExist("混色") ;""内填窗口名称
+      ; ToolTip 已找到调色盘
+      break
+    }
+    else if (寻找耗时>500)
+    {
+      调色盘:=0
+      BlockInput, Off
+      BlockInput, MouseMoveOff
+      loop 100
+      {
+        ToolTip 未找到调色盘 请检查呼出调色盘快捷键设置是否正确
+        Sleep 30
+      }
+      ToolTip
+      return
+    }
+  }
+}
+else
+{
+  loop ;寻找调色盘
+  {
+    寻找耗时:=A_TickCount-开始计时
+    ; ToolTip 寻找色轮中%寻找耗时%ms
+    if !(WinExist("色彩混合")=0) ;""内填窗口名称
+    {
+      调色盘:=1
+      调色盘窗口ID:=WinExist("色彩混合") ;""内填窗口名称
+      ; ToolTip 已找到调色盘
+      break
+    }
+    else if (寻找耗时>500)
+    {
+      调色盘:=0
+      BlockInput, Off
+      BlockInput, MouseMoveOff
+      loop 100
+      {
+        ToolTip 未找到调色盘 请检查呼出调色盘快捷键设置是否正确
+        Sleep 30
+      }
+      ToolTip
+      return
+    }
+  }
+}
+if (简体中文=1)
+{
+  WinMove, 混色, , 色轮位置X+色轮宽度W, 色轮位置Y, 色轮宽度W, 色轮高度H ;移动色轮窗口位置
+}
+else
+{
+  WinMove, 色彩混合, , 色轮位置X+色轮宽度W, 色轮位置Y, 色轮宽度W, 色轮高度H ;移动色轮窗口位置
+}
+; KeyWait, Tab
+; KeyWait, Tab, D
+return
+
+$WheelUp::
+if (色轮=0) and (色相慢左旋!=1)
+{
+  Send {WheelUp}
+  return
+}
+色相慢左旋:=1
+return
+
 色相慢左旋:
+if GetKeyState("LButton", "P")
+{
+  goto 色相快左旋
+}
 BlockInput MouseMove
 Send {LButton Up}
 CoordMode, Mouse, Screen
@@ -948,37 +1378,78 @@ else
 圆心坐标Y:=Round(色轮在屏幕位置Y+色轮宽度W/2)+13
 圆的半径:=色轮宽度W/2-10
 CoordMode, Mouse, Screen
-if (色板位置=1)
+loop
 {
-  色板1色相角度:=色板1色相角度-0.00515
-  色相角度:=色板1色相角度
-  if (色板1色相角度<0)
+  if (色板位置=1)
   {
-    色板1色相角度:=6.283
-    色相角度:=6.283
+    色板1色相角度:=色板1色相角度-0.00515
+    色相角度:=色板1色相角度
+    if (色板1色相角度<0)
+    {
+      色板1色相角度:=6.283
+      色相角度:=6.283
+    }
+    IniWrite, %色板1色相角度%, 色轮设置.ini, 设置, 色板1色相角度
   }
-  IniWrite, %色板1色相角度%, 色轮设置.ini, 设置, 色板1色相角度
-}
-else if (色板位置=2)
-{
-  色板2色相角度:=色板2色相角度-0.00515
-  色相角度:=色板2色相角度
-  if (色板2色相角度<0)
+  else if (色板位置=2)
   {
-    色板2色相角度:=6.283
-    色相角度:=6.283
+    色板2色相角度:=色板2色相角度-0.00515
+    色相角度:=色板2色相角度
+    if (色板2色相角度<0)
+    {
+      色板2色相角度:=6.283
+      色相角度:=6.283
+    }
+    IniWrite, %色板2色相角度%, 色轮设置.ini, 设置, 色板2色相角度
   }
-  IniWrite, %色板2色相角度%, 色轮设置.ini, 设置, 色板2色相角度
+  gosub 色相偏移
+  
+  if !GetKeyState("q", "P")
+  {
+    break
+  }
+  else
+  {
+    if (A_Index=1)
+    {
+      loop 10
+      {
+        if !GetKeyState("q", "P")
+        {
+          break, 2
+        }
+        Sleep 25
+      }
+    }
+    Sleep 80
+  }
 }
-gosub 色相偏移
 Send {LButton Up}
+Sleep 10
 CoordMode, Mouse, Screen
 MouseMove, 鼠标在屏幕位置记忆X, 鼠标在屏幕位置记忆Y, 0
-Send {LButton Down}
+if (调色盘!=1)
+{
+  Send {LButton Down}
+}
 BlockInput MouseMoveOff
+色相慢左旋:=0
+return
+
+$WheelDown::
+if (色轮=0) and (色相慢右旋!=1)
+{
+  Send {WheelDown}
+  return
+}
+色相慢右旋:=1
 return
 
 色相慢右旋:
+if GetKeyState("LButton", "P")
+{
+  goto 色相快右旋
+}
 BlockInput MouseMove
 Send {LButton Up}
 CoordMode, Mouse, Screen
@@ -995,34 +1466,62 @@ else
 圆心坐标Y:=Round(色轮在屏幕位置Y+色轮宽度W/2)+12
 圆的半径:=色轮宽度W/2-10
 CoordMode, Mouse, Screen
-if (色板位置=1)
+loop
 {
-  色板1色相角度:=色板1色相角度+0.00515
-  色相角度:=色板1色相角度
-  if (色板1色相角度>6.283)
+  if (色板位置=1)
   {
-    色板1色相角度:=0
-    色相角度:=0
+    色板1色相角度:=色板1色相角度+0.00515
+    色相角度:=色板1色相角度
+    if (色板1色相角度>6.283)
+    {
+      色板1色相角度:=0
+      色相角度:=0
+    }
+    IniWrite, %色板1色相角度%, 色轮设置.ini, 设置, 色板1色相角度
   }
-  IniWrite, %色板1色相角度%, 色轮设置.ini, 设置, 色板1色相角度
-}
-else if (色板位置=2)
-{
-  色板2色相角度:=色板2色相角度+0.00515
-  色相角度:=色板2色相角度
-  if (色板2色相角度>6.283)
+  else if (色板位置=2)
   {
-    色板2色相角度:=0
-    色相角度:=0
+    色板2色相角度:=色板2色相角度+0.00515
+    色相角度:=色板2色相角度
+    if (色板2色相角度>6.283)
+    {
+      色板2色相角度:=0
+      色相角度:=0
+    }
+    IniWrite, %色板2色相角度%, 色轮设置.ini, 设置, 色板2色相角度
   }
-  IniWrite, %色板2色相角度%, 色轮设置.ini, 设置, 色板2色相角度
+  gosub 色相偏移
+  
+  if !GetKeyState("e", "P")
+  {
+    break
+  }
+  else
+  {
+    if (A_Index=1)
+    {
+      loop 10
+      {
+        if !GetKeyState("e", "P")
+        {
+          break, 2
+        }
+        Sleep 25
+      }
+    }
+    Sleep 80
+  }
 }
 gosub 色相偏移
 Send {LButton Up}
 CoordMode, Mouse, Screen
 MouseMove, 鼠标在屏幕位置记忆X, 鼠标在屏幕位置记忆Y, 0
-Send {LButton Down}
+if (调色盘!=1)
+{
+  Send {LButton Down}
+}
 BlockInput MouseMoveOff
+色相慢右旋:=0
 return
 
 色相快左旋:
@@ -1042,34 +1541,62 @@ else
 圆心坐标Y:=Round(色轮在屏幕位置Y+色轮宽度W/2)+12
 圆的半径:=色轮宽度W/2-10
 CoordMode, Mouse, Screen
-if (色板位置=1)
+loop
 {
-  色板1色相角度:=色板1色相角度-0.103
-  色相角度:=色板1色相角度
-  if (色板1色相角度<0)
+  if (色板位置=1)
   {
-    色板1色相角度:=6.283
-    色相角度:=6.283
+    色板1色相角度:=色板1色相角度-0.103
+    色相角度:=色板1色相角度
+    if (色板1色相角度<0)
+    {
+      色板1色相角度:=6.283
+      色相角度:=6.283
+    }
+    IniWrite, %色板1色相角度%, 色轮设置.ini, 设置, 色板1色相角度
   }
-  IniWrite, %色板1色相角度%, 色轮设置.ini, 设置, 色板1色相角度
-}
-else if (色板位置=2)
-{
-  色板2色相角度:=色板2色相角度-0.103
-  色相角度:=色板2色相角度
-  if (色板2色相角度<0)
+  else if (色板位置=2)
   {
-    色板2色相角度:=6.283
-    色相角度:=6.283
+    色板2色相角度:=色板2色相角度-0.103
+    色相角度:=色板2色相角度
+    if (色板2色相角度<0)
+    {
+      色板2色相角度:=6.283
+      色相角度:=6.283
+    }
+    IniWrite, %色板2色相角度%, 色轮设置.ini, 设置, 色板2色相角度
   }
-  IniWrite, %色板2色相角度%, 色轮设置.ini, 设置, 色板2色相角度
+  gosub 色相偏移
+  
+  if !GetKeyState("a", "P")
+  {
+    break
+  }
+  else
+  {
+    if (A_Index=1)
+    {
+      loop 10
+      {
+        if !GetKeyState("a", "P")
+        {
+          break, 2
+        }
+        Sleep 25
+      }
+    }
+    Sleep 80
+  }
 }
 gosub 色相偏移
 Send {LButton Up}
 CoordMode, Mouse, Screen
 MouseMove, 鼠标在屏幕位置记忆X, 鼠标在屏幕位置记忆Y, 0
-Send {LButton Down}
+if (调色盘!=1)
+{
+  Send {LButton Down}
+}
 BlockInput MouseMoveOff
+色相慢左旋:=0
 return
 
 色相快右旋:
@@ -1089,34 +1616,63 @@ else
 圆心坐标Y:=Round(色轮在屏幕位置Y+色轮宽度W/2)+12
 圆的半径:=色轮宽度W/2-10
 CoordMode, Mouse, Screen
-if (色板位置=1)
+loop
 {
-  色板1色相角度:=色板1色相角度+0.103
-  色相角度:=色板1色相角度
-  if (色板1色相角度>6.283)
+  if (色板位置=1)
   {
-    色板1色相角度:=0
-    色相角度:=0
+    色板1色相角度:=色板1色相角度+0.103
+    色相角度:=色板1色相角度
+    if (色板1色相角度>6.283)
+    {
+      色板1色相角度:=0
+      色相角度:=0
+    }
+    IniWrite, %色板1色相角度%, 色轮设置.ini, 设置, 色板1色相角度
   }
-  IniWrite, %色板1色相角度%, 色轮设置.ini, 设置, 色板1色相角度
-}
-else if (色板位置=2)
-{
-  色板2色相角度:=色板2色相角度+0.103
-  色相角度:=色板2色相角度
-  if (色板2色相角度>6.283)
+  else if (色板位置=2)
   {
-    色板2色相角度:=0
-    色相角度:=0
+    色板2色相角度:=色板2色相角度+0.103
+    色相角度:=色板2色相角度
+    if (色板2色相角度>6.283)
+    {
+      色板2色相角度:=0
+      色相角度:=0
+    }
+    IniWrite, %色板2色相角度%, 色轮设置.ini, 设置, 色板2色相角度
   }
-  IniWrite, %色板2色相角度%, 色轮设置.ini, 设置, 色板2色相角度
+  gosub 色相偏移
+  
+  if !GetKeyState("d", "P")
+  {
+    break
+  }
+  else
+  {
+    if (A_Index=1)
+    {
+      loop 10
+      {
+        if !GetKeyState("d", "P")
+        {
+          break, 2
+        }
+        Sleep 25
+      }
+    }
+    Sleep 80
+  }
 }
 gosub 色相偏移
 Send {LButton Up}
+Sleep 10
 CoordMode, Mouse, Screen
 MouseMove, 鼠标在屏幕位置记忆X, 鼠标在屏幕位置记忆Y, 0
-Send {LButton Down}
+if (调色盘!=1)
+{
+  Send {LButton Down}
+}
 BlockInput MouseMoveOff
+色相慢右旋:=0
 return
 
 色相偏移:
@@ -1163,4 +1719,116 @@ else if (色相角度>=4.71225) and (色相角度<6.283)
   MouseMove, 绘制坐标X, 绘制坐标Y, 0
 }
 Send {LButton Down}
+Sleep 10
+return
+
+清除调色盘:
+CoordMode, Mouse, Screen
+MouseGetPos, 鼠标在调色盘位置X, 鼠标在调色盘位置Y
+BlockInput, On
+BlockInput, MouseMove
+MouseMove, 色轮位置X+色轮宽度W+255, 色轮位置Y+480, 0
+Send {LButton}
+MouseMove, 鼠标在调色盘位置X, 鼠标在调色盘位置Y, 0
+BlockInput, Off
+BlockInput, MouseMoveOff
+return
+
+撤回还原调色盘:
+撤回计时:=A_TickCount
+loop
+{
+  记录时间:=A_TickCount-撤回计时
+  if !GetKeyState("1", "P")
+  {
+    break
+  }
+  else if (记录时间>350) ;还原
+  {
+    CoordMode, Mouse, Screen
+    MouseGetPos, 鼠标在调色盘位置X, 鼠标在调色盘位置Y
+    BlockInput, On
+    BlockInput, MouseMove
+    MouseMove, 色轮位置X+色轮宽度W+295, 色轮位置Y+480, 0
+    Send {LButton}
+    MouseMove, 鼠标在调色盘位置X, 鼠标在调色盘位置Y, 0
+    BlockInput, Off
+    BlockInput, MouseMoveOff
+    Sleep 200
+  }
+}
+if (记录时间<=350) ;撤回
+{
+  CoordMode, Mouse, Screen
+  MouseGetPos, 鼠标在调色盘位置X, 鼠标在调色盘位置Y
+  BlockInput, On
+  BlockInput, MouseMove
+  MouseMove, 色轮位置X+色轮宽度W+275, 色轮位置Y+480, 0
+  Send {LButton}
+  MouseMove, 鼠标在调色盘位置X, 鼠标在调色盘位置Y, 0
+  BlockInput, Off
+  BlockInput, MouseMoveOff
+}
+return
+
+调色盘笔刷变小:
+旧调色盘笔刷大小:=调色盘笔刷大小
+调色盘笔刷大小:=调色盘笔刷大小-1
+if (调色盘笔刷大小<0)
+{
+  调色盘笔刷大小:=0
+}
+if (调色盘笔刷大小!=旧调色盘笔刷大小)
+{
+  CoordMode, Mouse, Screen
+  MouseGetPos, 鼠标在调色盘位置X, 鼠标在调色盘位置Y
+  BlockInput, On
+  BlockInput, MouseMove
+  MouseMove, 色轮位置X+色轮宽度W+323+20*调色盘笔刷大小, 色轮位置Y+480, 0
+  Send {LButton}
+  MouseMove, 鼠标在调色盘位置X, 鼠标在调色盘位置Y, 0
+  BlockInput, Off
+  BlockInput, MouseMoveOff
+}
+KeyWait, 2
+return
+
+调色盘笔刷变大:
+旧调色盘笔刷大小:=调色盘笔刷大小
+调色盘笔刷大小:=调色盘笔刷大小+1
+if (调色盘笔刷大小>2)
+{
+  调色盘笔刷大小:=2
+}
+if (调色盘笔刷大小!=旧调色盘笔刷大小)
+{
+  CoordMode, Mouse, Screen
+  MouseGetPos, 鼠标在调色盘位置X, 鼠标在调色盘位置Y
+  BlockInput, On
+  BlockInput, MouseMove
+  MouseMove, 色轮位置X+色轮宽度W+323+20*调色盘笔刷大小, 色轮位置Y+480, 0
+  Send {LButton}
+  MouseMove, 鼠标在调色盘位置X, 鼠标在调色盘位置Y, 0
+  BlockInput, Off
+  BlockInput, MouseMoveOff
+}
+KeyWait, 3
+return
+
+切换调色盘笔刷样式:
+调色盘笔刷样式:=调色盘笔刷样式+1
+if (调色盘笔刷样式>2)
+{
+  调色盘笔刷样式:=0
+}
+CoordMode, Mouse, Screen
+MouseGetPos, 鼠标在调色盘位置X, 鼠标在调色盘位置Y
+BlockInput, On
+BlockInput, MouseMove
+MouseMove, 色轮位置X+色轮宽度W+390+20*调色盘笔刷样式, 色轮位置Y+480, 0
+Send {LButton}
+MouseMove, 鼠标在调色盘位置X, 鼠标在调色盘位置Y, 0
+BlockInput, Off
+BlockInput, MouseMoveOff
+KeyWait, 4
 return
