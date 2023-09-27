@@ -47,6 +47,9 @@ Menu, Tray, Add, 退出软件, 退出软件 ;添加新的右键菜单
 色环矫正:=0
 色相慢左旋:=0
 色相慢右旋:=0
+菜单隐藏:=0
+延迟执行:=0
+软件Class名:=0
 
 autostartLnk:=A_StartupCommon . "\HighEfficiencyColorWheelForCSPv2.lnk" ;开机启动文件的路径
 IfExist, % autostartLnk ;检查开机启动的文件是否存在
@@ -83,6 +86,12 @@ IfExist, %A_ScriptDir%\色轮设置.ini ;如果配置文件存在则读取
   IniRead, 色板2取色颜色, 色轮设置.ini, 设置, 色板2取色颜色
   IniRead, 调色盘笔刷样式, 色轮设置.ini, 设置, 调色盘笔刷样式
   IniRead, 调色盘笔刷大小, 色轮设置.ini, 设置, 调色盘笔刷大小
+  IniRead, 面板展开, 色轮设置.ini, 设置, 面板展开
+  IniRead, 软件Class名, 色轮设置.ini, 设置, 软件Class名
+  if (软件Class名!=0)
+  {
+    SetTimer, 自动隐藏菜单, 200
+  }
   IniRead, 色轮呼出快捷键, 色轮设置.ini, 设置, 色轮呼出快捷键
   快捷键1:=色轮呼出快捷键
   Ctrl键1:=InStr(快捷键1, "^")
@@ -157,8 +166,143 @@ else
   IniWrite, %调色盘笔刷样式%, 色轮设置.ini, 设置, 调色盘笔刷样式
   调色盘笔刷大小:=0
   IniWrite, %调色盘笔刷大小%, 色轮设置.ini, 设置, 调色盘笔刷大小
+  软件Class名:=0
+  IniWrite, %软件Class名%, 色轮设置.ini, 设置, 软件Class名
   goto 初始设置
 }
+return
+
+自动隐藏菜单:
+MouseGetPos, , , WinID
+WinGetClass, 当前界面Class名, ahk_id %WinID%
+if GetKeyState("LButton", "P") or (色轮=1) or (当前界面Class名!=软件Class名)
+{
+  return
+}
+Hotkey, $Tab, Off
+软件前台:=WinActive("ahk_exe CLIPStudioPaint.exe")
+if (软件前台!=0x0)
+{
+  CoordMode, Mouse, Screen
+  MouseGetPos, MX, MY, WinID
+  if (MY<=A_ScreenHeight/30) and (菜单隐藏=1)
+  {
+    Send {Shift Down}
+    Sleep 100
+    loop
+    {
+      ImageSearch, , , 0, 0, A_ScreenWidth, A_ScreenHeight/10, *10 %A_ScriptDir%\隐藏菜单.png
+      ; ToolTip 显示%ErrorLevel%
+      if (ErrorLevel=1) ;隐藏
+      {
+        Send {Tab Down}
+        Sleep 50
+        Send {Tab Up}
+        Sleep 150
+      }
+      if (ErrorLevel=0) ;显示
+      {
+        Send {Tab Down}
+        Sleep 50
+        Send {Tab Up}
+        break
+      }
+    }
+    Send {Ctrl Down}
+    Send {Alt Down}
+    ImageSearch, , , 0, 0, A_ScreenWidth, A_ScreenHeight/10, *10 %A_ScriptDir%\隐藏工具栏.png
+    if (ErrorLevel=1) ;隐藏
+    {
+      Send {F3 Down}
+      Sleep 50
+      Send {F3 Up}
+    }
+    Send {Ctrl Up}
+    Send {Shift Up}
+    Send {Alt Up}
+    菜单隐藏:=0
+    延迟执行:=1
+    SetTimer, 菜单隐藏延迟执行, -3000
+  }
+  else if (MY>A_ScreenHeight/20) and (菜单隐藏=0) and (延迟执行=0)
+  {
+    Send {Shift Down}
+    loop
+    {
+      ImageSearch, , , 0, 0, A_ScreenWidth, A_ScreenHeight/10, *10 %A_ScriptDir%\隐藏菜单.png
+      ; ToolTip 隐藏%ErrorLevel%
+      if (ErrorLevel=0) ;显示
+      {
+        Send {Tab Down}
+        Sleep 50
+        Send {Tab Up}
+        Sleep 150
+      }
+      if (ErrorLevel=1) ;隐藏
+      {
+        break
+      }
+    }
+    Send {Ctrl Down}
+    Send {Alt Down}
+    ImageSearch, , , 0, 0, A_ScreenWidth, A_ScreenHeight/10, *10 %A_ScriptDir%\隐藏工具栏.png
+    if (ErrorLevel=0) ;显示
+    {
+      Send {F3 Down}
+      Sleep 50
+      Send {F3 Up}
+    }
+    Send {Ctrl Up}
+    Send {Shift Up}
+    Send {Alt Up}
+    菜单隐藏:=1
+  }
+  Hotkey, $Tab, On
+  
+  if (面板展开=0)
+  {
+    if (MX<=A_ScreenWidth/20) or (MX>=A_ScreenWidth-A_ScreenWidth/20) ;展开面板
+    {
+      loop
+      {
+        ImageSearch, , , 0, 0, A_ScreenWidth, A_ScreenHeight, *10 %A_ScriptDir%\全屏识别.png
+        if (ErrorLevel=1)
+        {
+          Send {Tab Down}
+          Sleep 50
+          Send {Tab Up}
+          Sleep 150
+        }
+        else if (ErrorLevel=0)
+        {
+          break
+        }
+      }
+    }
+    else if (MX>=A_ScreenWidth/8) and (MX<=A_ScreenWidth-A_ScreenWidth/8) ;隐藏面板
+    {
+      loop
+      {
+        ImageSearch, , , 0, 0, A_ScreenWidth, A_ScreenHeight, *10 %A_ScriptDir%\全屏识别.png
+        if (ErrorLevel=0)
+        {
+          Send {Tab Down}
+          Sleep 50
+          Send {Tab Up}
+          Sleep 150
+        }
+        else if (ErrorLevel=1)
+        {
+          break
+        }
+      }
+    }
+  }
+}
+return
+
+菜单隐藏延迟执行:
+延迟执行:=0
 return
 
 初始设置:
@@ -281,7 +425,7 @@ if (初始设置=0)
 return
 
 使用教程:
-MsgBox, , 德芙色轮, 黑钨重工出品 免费开源 请勿商用 侵权必究`n`n目前仅支持1080p屏幕 100`%缩放`nCSP v2版本 请使用HSV色轮`nCSP需要设置呼出色轮的快捷键`n设置的位置在`:文件`-快捷键设置`-弹出式面板`-色環`n请在数位板设置中关闭Windows Ink功能`n画布设置的意思是`:`n画布的多大范围内按下Tab才能呼出色轮`n如果取色环显示位置不准`n请打开色环矫正后使用上下左右箭头修正`n`n按住Tab键 或 鼠标中键 触发德芙色轮`nW 切换色板`nQ和E 或者 滚轮 控制色相慢速左旋和右旋`nA和D 控制色相快速左旋和右旋`n松开Tab 或 鼠标中键 完成取色`n`n按下S打开或关闭记忆模式`n每次打开色轮使用上次在色轮中取的色`n而不使用在画布上取的颜色`n当打开调色盘时`n重音符 清空调色盘`n数字1 短按撤回 长按还原`n数字2和数字3 控制笔刷大小`n数字4 切换笔刷样式`n`n更多详细设置看ini文件修改`n如果更新后无法运行请删除ini文件后重新运行本软件`n`n更多免费教程尽在QQ群 1群763625227 2群643763519
+MsgBox, , 德芙色轮, 黑钨重工出品 免费开源 请勿商用 侵权必究`n`n目前仅支持1080p屏幕 100`%缩放`nCSP v2版本 请使用HSV色轮`nCSP需要设置呼出色轮的快捷键`n设置的位置在`:文件`-快捷键设置`-主菜单`-窗口`-色環/色轮 色彩混合/混色`n请在数位板设置中关闭Windows Ink功能`n画布设置的意思是`:`n画布的多大范围内按下Tab才能呼出色轮`n如果取色环显示位置不准`n请打开色环矫正后使用上下左右箭头修正`n`nEnter键 短按打开自动隐藏功能 长按关闭自动隐藏功能`n自动隐藏需要设置命令列的快捷键为Ctrl`+Shift`+Alt`+F3`n按住Tab键 或 鼠标中键 触发德芙色轮`nW 切换色板`nQ和E 或者 滚轮 控制色相慢速左旋和右旋`nA和D 控制色相快速左旋和右旋`n松开Tab 或 鼠标中键 完成取色`n`n按下S打开或关闭记忆模式`n每次打开色轮使用上次在色轮中取的色`n而不使用在画布上取的颜色`n当打开调色盘时`n重音符 清空调色盘`n数字1 短按撤回 长按还原`n数字2和数字3 控制笔刷大小`n数字4 切换笔刷样式`n`n更多详细设置看ini文件修改`n如果更新后无法运行请删除ini文件后重新运行本软件`n`n更多免费教程尽在QQ群 1群763625227 2群643763519
 return
 
 快捷设置:
@@ -534,6 +678,92 @@ if (色轮=0)
 }
 return
 
+$1::
+if (色轮=0)
+{
+  Send {1 Down}
+  KeyWait, 1
+  Send {1 Up}
+  return
+}
+return
+
+$2::
+if (色轮=0)
+{
+  Send {2 Down}
+  KeyWait, 2
+  Send {2 Up}
+  return
+}
+return
+
+$3::
+if (色轮=0)
+{
+  Send {3 Down}
+  KeyWait, 3
+  Send {3 Up}
+  return
+}
+return
+
+$4::
+if (色轮=0)
+{
+  Send {4 Down}
+  KeyWait, 4
+  Send {4 Up}
+  return
+}
+return
+
+$`::
+if (色轮=0)
+{
+  Send {`` Down}
+  KeyWait, ``
+  Send {`` Up}
+  return
+}
+return
+
+~Enter::
+自动隐藏:=A_TickCount
+KeyWait, Enter
+if (A_TickCount-自动隐藏<=500)
+{
+  if (软件Class名=0)
+  {
+    MouseGetPos, , , WinID
+    WinGetClass, 软件Class名, ahk_id %WinID%
+    IniWrite, %软件Class名%, 色轮设置.ini, 设置, 软件Class名
+    if (软件Class名!=0)
+    {
+      SetTimer, 自动隐藏菜单, 200
+    }
+    loop 50
+    {
+      ToolTip, 已打开自动隐藏功能
+      Sleep 30
+    }
+    ToolTip
+  }
+}
+else
+{
+  软件Class名:=0
+  IniWrite, %软件Class名%, 色轮设置.ini, 设置, 软件Class名
+  SetTimer, 自动隐藏菜单, Delete
+  loop 50
+  {
+    ToolTip, 已关闭自动隐藏功能
+    Sleep 30
+  }
+  ToolTip
+}
+return
+
 $Tab:: ;Tab键
 $MButton:: ;中键
  ;检测鼠标是否在画布范围
@@ -544,6 +774,18 @@ if (鼠标在屏幕位置X<画布左上角X) or (鼠标在屏幕位置X>画布�
   Send {Tab Down}
   KeyWait, Tab
   Send {Tab Up}
+  Sleep 50
+  ImageSearch, , , 0, 0, A_ScreenWidth, A_ScreenHeight, *10 %A_ScriptDir%\全屏识别.png
+  if (ErrorLevel=0) ;是全屏
+  {
+    面板展开:=1
+    IniWrite, %面板展开%, 色轮设置.ini, 设置, 面板展开
+  }
+  else
+  {
+    面板展开:=0
+    IniWrite, %面板展开%, 色轮设置.ini, 设置, 面板展开
+  }
   return
 }
 
@@ -553,10 +795,9 @@ BlockInput, MouseMove
 CoordMode, Pixel, Screen
 
  ;识别是否全屏
-ImageSearch, ISX, ISY, 0, 0, A_ScreenWidth, A_ScreenHeight, *10 %A_ScriptDir%\全屏识别.png
+ImageSearch, , , 0, 0, A_ScreenWidth, A_ScreenHeight, *10 %A_ScriptDir%\全屏识别.png
 if (ErrorLevel=0) ;是全屏
 {
-  ; ToolTip %ISX% %ISY% 是全屏
   Send {Tab} ;进入全屏
   全屏:=1
 }
@@ -630,6 +871,22 @@ if (简体中文=1)
     else if (寻找耗时>500)
     {
       色轮:=0
+      BlockInput, On
+      BlockInput, MouseMove
+      Sleep 10
+      Send {space Down}
+      Send {LButton Down}
+      CoordMode, Mouse, Screen
+      MouseMove, 移动画布距离, 0, 0, R
+      Sleep 10
+      Send {LButton Up}
+      Send {space Up}
+      if (全屏=1) ;如果之前进入了全屏则退出全屏
+      {
+        Send {Tab}
+        全屏:=0
+      }
+      MouseMove, 鼠标在屏幕位置X, 鼠标在屏幕位置Y
       BlockInput, Off
       BlockInput, MouseMoveOff
       loop 100
@@ -658,6 +915,22 @@ else
     else if (寻找耗时>500)
     {
       色轮:=0
+      BlockInput, On
+      BlockInput, MouseMove
+      Sleep 10
+      Send {space Down}
+      Send {LButton Down}
+      CoordMode, Mouse, Screen
+      MouseMove, 移动画布距离, 0, 0, R
+      Sleep 10
+      Send {LButton Up}
+      Send {space Up}
+      if (全屏=1) ;如果之前进入了全屏则退出全屏
+      {
+        Send {Tab}
+        全屏:=0
+      }
+      MouseMove, 鼠标在屏幕位置X, 鼠标在屏幕位置Y
       BlockInput, Off
       BlockInput, MouseMoveOff
       loop 100
@@ -1060,7 +1333,6 @@ MouseMove, 移动画布距离, 0, 0, R
 Sleep 10
 Send {LButton Up}
 Send {space Up}
-CoordMode, Pixel, Screen
 if (全屏=1) ;如果之前进入了全屏则退出全屏
 {
   Send {Tab}
