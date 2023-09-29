@@ -280,6 +280,7 @@ Hotkey, $Tab, Off
 if (软件前台!=0x0)
 {
   CoordMode, Mouse, Screen
+  CoordMode, Pixel, Screen
   MouseGetPos, MX, MY, WinID
   if (MY<=A_ScreenHeight/30) and (菜单隐藏=1)
   {
@@ -316,7 +317,48 @@ if (软件前台!=0x0)
     Send {Shift Up}
     菜单隐藏:=0
     延迟执行:=1
-    SetTimer, 菜单隐藏延迟执行, -3000
+    loop
+    {
+      CoordMode, Mouse, Screen
+      MouseGetPos, , MY
+      if GetKeyState("LButton", "P")
+      {
+        loop
+        {
+          MouseGetPos, , , WinID
+          WinGetClass, 当前界面Class名, ahk_id %WinID%
+          if (当前界面Class名!=软件Class名)
+          {
+            break
+          }
+        }
+      }
+      else if (MY>A_ScreenHeight/20)
+      {
+        break
+      }
+    }
+    loop
+    {
+      WinGetClass, classid, A
+      ToolTip %classid%
+      MouseGetPos, , , WinID
+      WinGetClass, 当前界面Class名, ahk_id %WinID%
+      if (当前界面Class名=软件Class名)
+      {
+        延迟执行:=延迟执行+1 
+        if (延迟执行>35)
+        {
+          break
+        }
+      }
+      else
+      {
+        延迟执行:=1
+      }
+      Sleep 100
+    }
+    延迟执行:=0
   }
   else if (MY>A_ScreenHeight/20) and (菜单隐藏=0) and (延迟执行=0)
   {
@@ -351,8 +393,9 @@ if (软件前台!=0x0)
   }
   Hotkey, $Tab, On
   
-  if (面板展开=0)
+  if (面板展开=0) and (MY>A_ScreenHeight/20)
   {
+    CoordMode, Pixel, Screen
     if (MX<=A_ScreenWidth/20) or (MX>=A_ScreenWidth-A_ScreenWidth/20) ;展开面板
     {
       loop
@@ -393,10 +436,6 @@ if (软件前台!=0x0)
     }
   }
 }
-return
-
-菜单隐藏延迟执行:
-延迟执行:=0
 return
 
 初始设置:
