@@ -346,7 +346,29 @@ if (软件前台!=0x0)
       WinGetClass, 当前界面Class名, ahk_id %WinID%
       if (当前界面Class名=软件Class名)
       {
-        延迟执行:=延迟执行+1 
+        if (简体中文=1)
+        {
+          if !(WinExist("画布大小")=0) or !(WinExist("插入区域")=0) or !(WinExist("删除区域")=0) or !(WinExist("自动阴影")=0)
+          {
+            延迟执行:=1
+          }
+          else
+          {
+            延迟执行:=延迟执行+1 
+          }
+        }
+        else
+        {
+          if !(WinExist("變更畫布尺寸")=0) or !(WinExist("插入畫布的區域")=0) or !(WinExist("刪除畫布的區域")=0) or !(WinExist("自動陰影")=0)
+          {
+            延迟执行:=1
+          }
+          else
+          {
+            延迟执行:=延迟执行+1 
+          }
+        }
+        
         if (延迟执行>35)
         {
           break
