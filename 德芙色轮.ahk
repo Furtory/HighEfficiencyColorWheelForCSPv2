@@ -542,36 +542,96 @@ return
 
 画布设置:
 KeyWait, LButton
+CoordMode, Mouse, Screen
 loop
 {
-  ToolTip 按下鼠标右键设置画布左上角
-  if GetKeyState("RButton", "P")
+  WinActivate, ahk_exe CLIPStudioPaint.exe ;窗口置于顶层
+  Sleep 100
+  IfWinActive, ahk_exe CLIPStudioPaint.exe ;窗口坐标获取
   {
-    CoordMode, Mouse, Screen
-    MouseGetPos, 画布左上角X, 画布左上角Y
-    IniWrite, %画布左上角X%, 色轮设置.ini, 设置, 画布左上角X
-    IniWrite, %画布左上角Y%, 色轮设置.ini, 设置, 画布左上角Y
-    KeyWait, RButton
-    break
+    loop
+    {
+      ToolTip 按住鼠标左键拖拽框选画布范围
+      if GetKeyState("LButton", "P")
+      {
+        ToolTip
+        MouseGetPos, 画布对角1X, 画布对角1Y
+        break
+      }
+      Sleep 30
+    }
+    
+    Gui 画布范围:New, -DPIScale -MinimizeBox -MaximizeBox -SysMenu AlwaysOnTop, 画布范围
+    Gui 画布范围:Show, W24 H11 X-50 Y-50, 画布范围
+    WinSet, Style, -0xC00000, 画布范围 ;去除标题
+    WinSet, Transparent, 100, 画布范围 ;透明度0-255
+    loop
+    {
+      MouseGetPos, 画布对角2X, 画布对角2Y
+      画布宽度:=Abs(画布对角1X-画布对角2X)
+      画布高度:=Abs(画布对角1Y-画布对角2Y)
+      
+      if (画布对角2X>画布对角1X)
+      {
+        范围显示X:=画布对角1X
+      }
+      else
+      {
+        范围显示X:=画布对角2X
+      }
+      
+      if (画布对角2Y>画布对角1Y)
+      {
+        范围显示Y:=画布对角1Y
+      }
+      else
+      {
+        范围显示Y:=画布对角2Y
+      }
+      
+      WinMove, 画布范围, ,范围显示X, 范围显示Y, 画布宽度, 画布高度
+      
+      if !GetKeyState("LButton", "P")
+      {
+        Gui 画布范围:Destroy
+        break, 2
+      }
+    }
   }
-  Sleep 10
 }
-loop
+
+if (画布对角2X>画布对角1X)
 {
-  ToolTip 按下鼠标右键设置画布右下角
-  if GetKeyState("RButton", "P")
-  {
-    CoordMode, Mouse, Screen
-    MouseGetPos, 画布右下角X, 画布右下角Y
-    IniWrite, %画布右下角X%, 色轮设置.ini, 设置, 画布右下角X
-    IniWrite, %画布右下角Y%, 色轮设置.ini, 设置, 画布右下角Y
-    KeyWait, RButton
-    break
-  }
-  Sleep 10
+  画布左上角X:=画布对角1X
+  画布右下角X:=画布对角2X
 }
-ToolTip, 画布范围设置完成`n画布左上角 X%画布左上角X% Y%画布左上角Y%`n画布右下角 X%画布右下角X% %画布右下角Y%
-Sleep 1000
+else
+{
+  画布左上角X:=画布对角2X
+  画布右下角X:=画布对角1X
+}
+
+if (画布对角2Y>画布对角1Y)
+{
+  画布左上角Y:=画布对角1Y
+  画布右下角Y:=画布对角2Y
+}
+else
+{
+  画布左上角Y:=画布对角2Y
+  画布右下角Y:=画布对角1Y
+}
+IniWrite, %画布左上角X%, 色轮设置.ini, 设置, 画布左上角X
+IniWrite, %画布左上角Y%, 色轮设置.ini, 设置, 画布左上角Y
+IniWrite, %画布右下角X%, 色轮设置.ini, 设置, 画布右下角X
+IniWrite, %画布右下角Y%, 色轮设置.ini, 设置, 画布右下角Y
+
+loop 100
+{
+  ToolTip, 画布范围设置完成`n画布左上角 X%画布左上角X% Y%画布左上角Y%`n画布右下角 X%画布右下角X% %画布右下角Y%
+  Sleep 30
+}
+
 ToolTip
 if (初始设置=0)
 {
