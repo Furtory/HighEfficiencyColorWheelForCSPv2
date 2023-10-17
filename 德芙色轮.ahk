@@ -33,6 +33,7 @@ Menu, Tray, Add, 使用教程, 使用教程 ;添加新的右键菜单
 Menu, Tray, Add, 重置设置, 初始设置 ;添加新的右键菜单
 Menu, Tray, Add, 简体中文, 语言设置 ;添加新的右键菜单
 Menu, Tray, Add, 画布设置, 画布设置 ;添加新的右键菜单
+; Menu, Tray, Add, PS取色, PS取色 ;添加新的右键菜单
 Menu, Tray, Add, 快捷设置, 快捷设置 ;添加新的右键菜单
 Menu, Tray, Add, 色环矫正, 色环矫正 ;添加新的右键菜单
 Menu, Tray, Add, 记忆模式, 记忆模式 ;添加新的右键菜单
@@ -55,6 +56,12 @@ Menu, Tray, Add, 退出软件, 退出软件 ;添加新的右键菜单
 autostartLnk:=A_StartupCommon . "\HighEfficiencyColorWheelForCSPv2.lnk" ;开机启动文件的路径
 IfExist, % autostartLnk ;检查开机启动的文件是否存在
 {
+  FileGetShortcut, %autostartLnk%, lnkTarget ;获取开机启动文件的信息
+  if (lnkTarget!=A_ScriptFullPath) ;如果启动文件执行的路径和当前脚本的完整路径不一致
+  {
+    FileCreateShortcut, %A_ScriptFullPath%, %autostartLnk%, %A_WorkingDir% ;将启动文件执行的路径改成和当前脚本的完整路径一致
+  }
+  
   autostart:=1
   Menu, Tray, Check, 开机自启 ;右键菜单打勾
 }
@@ -89,6 +96,7 @@ IfExist, %A_ScriptDir%\色轮设置.ini ;如果配置文件存在则读取
   IniRead, 调色盘笔刷大小, 色轮设置.ini, 设置, 调色盘笔刷大小
   IniRead, 面板展开, 色轮设置.ini, 设置, 面板展开
   IniRead, 软件Class名, 色轮设置.ini, 设置, 软件Class名
+  ; IniRead, PSwinclass, 色轮设置.ini, 设置, PS取色窗口
   if (软件Class名!=0)
   {
     SetTimer, 自动隐藏菜单, 200
@@ -169,6 +177,8 @@ else
   IniWrite, %调色盘笔刷大小%, 色轮设置.ini, 设置, 调色盘笔刷大小
   软件Class名:=0
   IniWrite, %软件Class名%, 色轮设置.ini, 设置, 软件Class名
+  ; PSwinclass:="ahk_class OWL.Dock"
+  ; IniWrite, %PSwinclass%, 色轮设置.ini, 设置, PS取色窗口
   goto 初始设置
 }
 return
@@ -275,7 +285,7 @@ if GetKeyState("LButton", "P") or GetKeyState("Tab", "P") or GetKeyState("Ctrl",
 {
   return
 }
-Hotkey, $Tab, Off
+; Hotkey, $Tab, Off
 软件前台:=WinActive("ahk_exe CLIPStudioPaint.exe")
 if (软件前台!=0x0)
 {
@@ -413,7 +423,7 @@ if (软件前台!=0x0)
     Send {Shift Up}
     菜单隐藏:=1
   }
-  Hotkey, $Tab, On
+  ; Hotkey, $Tab, On
   
   if (面板展开=0) and (MY>A_ScreenHeight/20)
   {
@@ -422,39 +432,53 @@ if (软件前台!=0x0)
     {
       loop
       {
-        ImageSearch, , , 0, 0, A_ScreenWidth, A_ScreenHeight, *10 %A_ScriptDir%\全屏识别.png
-        if (ErrorLevel=1)
+        if !(WinExist("顏色設定")=0)
         {
-          Send {Tab Down}
-          Sleep 50
-          Send {Tab Up}
-          Sleep 150
+          Sleep 30
         }
-        else if (ErrorLevel=0)
+        else
         {
-          break
+          ImageSearch, , , 0, 0, A_ScreenWidth, A_ScreenHeight, *10 %A_ScriptDir%\全屏识别.png
+          if (ErrorLevel=1)
+          {
+            Send {Tab Down}
+            Sleep 50
+            Send {Tab Up}
+            Sleep 150
+          }
+          else if (ErrorLevel=0)
+          {
+            break
+          }
         }
-        面板自动展开:=1
       }
+      面板自动展开:=1
     }
     else if (MX>=A_ScreenWidth/8) and (MX<=A_ScreenWidth-A_ScreenWidth/8) ;隐藏面板
     {
       loop
       {
-        ImageSearch, , , 0, 0, A_ScreenWidth, A_ScreenHeight, *10 %A_ScriptDir%\全屏识别.png
-        if (ErrorLevel=0)
+        if !(WinExist("顏色設定")=0)
         {
-          Send {Tab Down}
-          Sleep 50
-          Send {Tab Up}
-          Sleep 150
+          Sleep 30
         }
-        else if (ErrorLevel=1)
+        else
         {
-          break
+          ImageSearch, , , 0, 0, A_ScreenWidth, A_ScreenHeight, *10 %A_ScriptDir%\全屏识别.png
+          if (ErrorLevel=0)
+          {
+            Send {Tab Down}
+            Sleep 50
+            Send {Tab Up}
+            Sleep 150
+          }
+          else if (ErrorLevel=1)
+          {
+            break
+          }
         }
-        面板自动展开:=0
       }
+      面板自动展开:=0
     }
   }
 }
@@ -639,6 +663,27 @@ if (初始设置=0)
 }
 return
 
+PS取色:
+loop
+{
+  ToolTip 请中键点击PS取色窗口
+  if GetKeyState("MButton", "P")
+  {
+    MouseGetPos, , , PSwinid
+    WinGetClass, PSwinclass, ahk_id %PSwinid%
+    IniWrite, %PSwinclass%, 色轮设置.ini, 设置, PS取色窗口
+    break
+  }
+  Sleep 30
+}
+loop 30
+{
+  ToolTip 已获取PS取色窗口 %PSwinclass%
+  Sleep 30
+}
+ToolTip
+return
+
 使用教程:
 MsgBox, , 德芙色轮, 黑钨重工出品 免费开源 请勿商用 侵权必究`n`n目前仅支持1080p屏幕 100`%缩放`nCSP v2版本 请使用HSV色轮`nCSP需要设置呼出色轮的快捷键`n设置的位置在`:文件`-快捷键设置`-主菜单`-窗口`-色環/色轮 色彩混合/混色`n请在数位板设置中关闭Windows Ink功能`n画布设置的意思是`:`n画布的多大范围内按下Tab才能呼出色轮`n如果取色环显示位置不准`n请打开色环矫正后使用上下左右箭头修正`n`nCtrl+Enter键 短按打开自动隐藏功能 长按关闭自动隐藏功能`n自动隐藏需要设置命令列的快捷键为Ctrl`+Shift`+F3`n按住Tab键 或 鼠标中键 触发德芙色轮`nW 切换色板`nQ和E 或者 滚轮 控制色相慢速左旋和右旋`nA和D 控制色相快速左旋和右旋`n松开Tab 或 鼠标中键 完成取色`n`n按下S打开或关闭记忆模式`n每次打开色轮使用上次在色轮中取的色`n而不使用在画布上取的颜色`n当打开调色盘时`n重音符 清空调色盘`n数字1 短按撤回 长按还原`n数字2和数字3 控制笔刷大小`n数字4 切换笔刷样式`n`n更多详细设置看ini文件修改`n如果更新后无法运行请删除ini文件后重新运行本软件`n`n更多免费教程尽在QQ群 1群763625227 2群643763519
 return
@@ -712,7 +757,7 @@ else ;开启开机自启动
 {
   IfExist, % autostartLnk ;如果开机启动的文件存在
   {
-    FileGetShortcut, %autostartLnkautostartLnk%, lnkTarget ;获取开机启动文件的信息
+    FileGetShortcut, %autostartLnk%, lnkTarget ;获取开机启动文件的信息
     if (lnkTarget!=A_ScriptFullPath) ;如果启动文件执行的路径和当前脚本的完整路径不一致
     {
       FileCreateShortcut, %A_ScriptFullPath%, %autostartLnk%, %A_WorkingDir% ;将启动文件执行的路径改成和当前脚本的完整路径一致
@@ -732,6 +777,7 @@ return
 重启软件:
 Reload
 
+^0::
 退出软件:
 ExitApp
 
@@ -832,159 +878,22 @@ ToBase(n,b){
     return (n < b ? "" : ToBase(n//b,b)) . ((d:=Mod(n,b)) < 10 ? d : Chr(d+55))
 }
 
-#IfWinActive ahk_exe CLIPStudioPaint.exe
-$w::
-if (色轮=0)
-{
-  Send {w Down}
-  KeyWait, w
-  Send {w Up}
-  return
-}
-return
-
-$s::
-if (色轮=0)
-{
-  Send {s Down}
-  KeyWait, s
-  Send {s Up}
-  return
-}
-return
-
-$q::
-if (色轮=0)
-{
-  Send {q Down}
-  KeyWait, q
-  Send {q Up}
-  return
-}
-return
-
-$e::
-if (色轮=0)
-{
-  Send {e Down}
-  KeyWait, e
-  Send {e Up}
-  return
-}
-return
-
-$a::
-if (色轮=0)
-{
-  Send {a Down}
-  KeyWait, a
-  Send {a Up}
-  return
-}
-return
-
-$d::
-if (色轮=0)
-{
-  Send {d Down}
-  KeyWait, d
-  Send {d Up}
-  return
-}
-return
-
-$1::
-if (色轮=0)
-{
-  Send {1 Down}
-  KeyWait, 1
-  Send {1 Up}
-  return
-}
-return
-
-$2::
-if (色轮=0)
-{
-  Send {2 Down}
-  KeyWait, 2
-  Send {2 Up}
-  return
-}
-return
-
-$3::
-if (色轮=0)
-{
-  Send {3 Down}
-  KeyWait, 3
-  Send {3 Up}
-  return
-}
-return
-
-$4::
-if (色轮=0)
-{
-  Send {4 Down}
-  KeyWait, 4
-  Send {4 Up}
-  return
-}
-return
-
-$`::
-if (色轮=0)
-{
-  Send {`` Down}
-  KeyWait, ``
-  Send {`` Up}
-  return
-}
-return
-
-~^Enter::
-自动隐藏:=A_TickCount
-KeyWait, Enter
-if (A_TickCount-自动隐藏<=500)
-{
-  if (软件Class名=0)
-  {
-    MouseGetPos, , , WinID
-    WinGetClass, 软件Class名, ahk_id %WinID%
-    IniWrite, %软件Class名%, 色轮设置.ini, 设置, 软件Class名
-    if (软件Class名!=0)
-    {
-      SetTimer, 自动隐藏菜单, 200
-    }
-    loop 50
-    {
-      ToolTip, 已打开自动隐藏功能
-      Sleep 30
-    }
-    ToolTip
-  }
-}
-else
-{
-  软件Class名:=0
-  IniWrite, %软件Class名%, 色轮设置.ini, 设置, 软件Class名
-  SetTimer, 自动隐藏菜单, Delete
-  loop 50
-  {
-    ToolTip, 已关闭自动隐藏功能
-    Sleep 30
-  }
-  ToolTip
-}
-return
-
 $MButton:: ;中键
 $Tab:: ;Tab键
+CoordMode, Mouse, Screen
+MouseGetPos, 鼠标在屏幕位置X, 鼠标在屏幕位置Y, CSP检测
+WinGet, 软件EXE名, ProcessName, ahk_id %CSP检测%
+最近按键:=StrReplace(A_ThisHotkey, "$")
+; ToolTip %软件EXE名% %最近按键%
+if (软件EXE名!="CLIPStudioPaint.exe")
+{
+  Send {%最近按键% Down}
+  KeyWait, %最近按键%
+  Send {%最近按键% Up}
+  return
+}
 Send {Tab Up}
  ;检测鼠标是否在画布范围
-CoordMode, Mouse, Screen
-MouseGetPos, 鼠标在屏幕位置X, 鼠标在屏幕位置Y
 if (鼠标在屏幕位置X<画布左上角X) or (鼠标在屏幕位置X>画布右下角X) or (鼠标在屏幕位置Y<画布左上角Y) or (鼠标在屏幕位置Y>画布右下角Y) ;不在画布范围内
 {
   if (面板自动展开=1)
@@ -1064,7 +973,9 @@ if (Alt键1!=0)
   Send {Alt Down}
   Sleep 10
 }
-Send {%快捷键1%} ;打开色轮
+Send {%快捷键1% Down} ;打开色轮
+Sleep 50
+Send {%快捷键1% Up}
 if (Ctrl键1!=0)
 {
   Send {Ctrl Up}
@@ -1183,7 +1094,7 @@ else ;if (全屏=0)
 {
   WinMove 取色环, , 鼠标在屏幕位置X-61-移动画布距离+色轮位置X补偿, 鼠标在屏幕位置Y-36+色轮位置Y补偿
 }
-Gui, 取色环:Color, 0xffffff ;色环颜色
+; Gui, 取色环:Color, 0xffffff ;色环颜色
 
  ;查看正在使用哪个色板
 if (简体中文=1)
@@ -1221,7 +1132,6 @@ else
 }
 ; ToolTip %色板位置% %色板位置X%
 
- ;检测当前颜色和之前是否一致
 if (记忆模式=1)
 {
   取色颜色:=色板1取色颜色
@@ -1256,10 +1166,11 @@ if (记忆模式=1)
   IniWrite, %色板1色相角度%, 色轮设置.ini, 设置, 色板1色相角度
   IniWrite, %取色颜色%, 色轮设置.ini, 设置, 色板1取色颜色
 }
-else ;颜色一致 直接读取记忆的颜色
+else
 {
   CoordMode Pixel, Screen
   PixelGetColor, 取色颜色, 色轮在屏幕位置X+取色位置X, 色轮在屏幕位置Y+取色位置Y, RGB
+  ;检测当前颜色和之前是否一致
   if (色板位置=1) and (取色颜色!=色板1取色颜色)
   {
     gosub 更新色板位置
@@ -1312,26 +1223,182 @@ BlockInput, Off
 BlockInput, MouseMoveOff
 CoordMode Pixel, Screen
 CoordMode, Mouse, Window
-MouseGetPos, 鼠标取色位置X, 鼠标取色位置Y, 色轮WinID
+旧取色颜色:=取色颜色
+MouseGetPos, 鼠标取色位置X, 鼠标取色位置Y, 色轮窗口ID
 手动取色:=0
 呼出调色盘:=0
+呼出PS取色:=0
+在PS取色:=0
 loop
 {
   CoordMode, Mouse, Screen
   MouseGetPos, 调色盘检测X, 调色盘检测Y
   if GetKeyState("LButton", "P")
   {
-    CoordMode, Mouse, Window
-    MouseGetPos, 鼠标取色位置X, 鼠标取色位置Y
     手动取色:=1
+    CoordMode, Mouse, Window
+    MouseGetPos, 鼠标取色位置X, 鼠标取色位置Y, 当前界面Winid
+    WinGetClass, 当前界面winclass, ahk_id %当前界面Winid%
+    if (WinExist("ahk_class PSFloatC")!=0x0) ;""内填窗口名称
+    {
+      MouseGetPos, , , 拾色器判断
+      WinGetClass, 当前窗口Class名, ahk_id %拾色器判断%
+      ; ToolTip, 鼠标在拾色器位置X%鼠标在拾色器位置X% 鼠标在拾色器位置Y%鼠标在拾色器位置Y%
+      if (当前窗口Class名="PSFloatC")
+      {
+        CoordMode, Mouse, Window
+        MouseGetPos, 鼠标在拾色器位置X, 鼠标在拾色器位置Y
+        WinGetPos, 拾色器窗口X, 拾色器窗口Y
+        if (鼠标在拾色器位置Y<=35)
+        {
+          KeyWait, LButton
+          Send {Ctrl Down}
+          Send {Shift Down}
+          Sleep 30
+          Send {Y Down}
+          Sleep 30
+          Send {Y Up}
+          Send {Shift Up}
+          Send {Ctrl Up}
+        }
+        else if (鼠标在拾色器位置Y>=35) and (鼠标在拾色器位置Y<=75) and (鼠标在拾色器位置X>=425) ;确定
+        {
+          KeyWait, LButton
+          CoordMode, Pixel, Screen
+          PixelGetColor, 取色颜色, 拾色器窗口X+350, 拾色器窗口Y+95, RGB
+          Gui, 取色环:Color, %取色颜色% ;色环颜色
+          loop 50
+          {
+            if (WinExist("ahk_class PSFloatC")=0x0)
+            {
+              在CSP取色颜色:=取色颜色
+              gosub PS到CSP色彩更新
+              break
+            }
+            Sleep 10
+          }
+        }
+        else
+        {
+          ; ToolTip, e
+          loop
+          {
+            CoordMode, Pixel, Screen
+            PixelGetColor, 取色颜色, 拾色器窗口X+350, 拾色器窗口Y+95, RGB
+            Gui, 取色环:Color, %取色颜色% ;色环颜色
+            ; ToolTip, 鼠标在拾色器位置X%鼠标在拾色器位置X% 鼠标在拾色器位置Y%鼠标在拾色器位置Y% 取色颜色%取色颜色%
+            if !GetKeyState("LButton", "P")
+            {
+              break
+            }
+          }
+          if (LButton_presses > 0) ; SetTimer 已经启动, 所以我们记录键击.
+          {
+            LButton_presses += 1
+          }
+          else
+          {
+            LButton_presses := 1
+            SetTimer, KeyLButton, -400 ; 在 400 毫秒内等待更多的键击.
+          }
+        }
+      }
+    }
+    else if (当前界面winclass="OWL.Dock") and GetKeyState("LButton", "P")
+    {
+      IfWinNotActive, ahk_class OWL.Dock
+      {
+        BlockInput, Send
+        ; Send {Tab Up}
+        WinActivate, ahk_class OWL.Dock
+        Send {LButton Up}
+        Sleep 10
+        Send {LButton Down}
+        BlockInput, Default
+      }
+      
+      在PS取色:=1
+      loop
+      {
+        PixelGetColor, 取色颜色, 色轮位置X+20, 色轮位置Y+色轮高度H+62, RGB
+        ; 旧在PS取色:=取色颜色
+        Gui, 取色环:Color, %取色颜色% ;色环颜色
+        if !GetKeyState("LButton", "P")
+        {
+          gosub PS到CSP色彩更新
+          Sleep 50
+          if (WinExist("ahk_class PSFloatC")!=0x0) ;""内填窗口名称
+          {
+            BlockInput, On
+            CoordMode, Mouse, Screen
+            WinActivate, ahk_class PSFloatC
+            WinGetPos, 拾色器窗口X, 拾色器窗口Y
+            
+            if (拾色器窗口X!=色轮位置X+40) or (拾色器窗口Y!=色轮位置Y+色轮高度H)
+            {
+              MouseMove, 拾色器窗口X+15, 拾色器窗口Y+5, 0
+              Send {LButton Down}
+              MouseMove, 色轮位置X+55, 色轮位置Y+色轮高度H+5, 0
+              Sleep 10
+              Send {LButton Up}
+            }
+            
+            if (记忆模式=0) and (在CSP取色颜色!=取色颜色)
+            {
+              在CSP取色颜色:=StrReplace(在CSP取色颜色,"0x")
+              Clipboard:=在CSP取色颜色
+              Sleep 10
+              Send {Ctrl Down}
+              Sleep 50
+              Send {v Down}
+              Sleep 50
+              Send {v Up}
+              Send {Ctrl Up}
+              Sleep 50
+            }
+            
+            BlockInput Off
+          }
+          break
+        }
+      }
+    }
+    else
+    {
+      在PS取色:=0
+      loop
+      {
+        PixelGetColor, 取色颜色, 色轮位置X+取色位置X, 色轮位置Y+取色位置Y, RGB
+        在CSP取色颜色:=取色颜色
+        Gui, 取色环:Color, %取色颜色% ;色环颜色
+        if !GetKeyState("LButton", "P")
+        {
+          break
+        }
+      }
+    }
   }
   else if (调色盘检测X>色轮位置X+(色轮宽度W-256)/2+256+20) and (调色盘!=1) and (呼出调色盘!=1)
   {
-    呼出调色盘:=1
     if (手动取色=0)
     {
+      取色颜色:=旧取色颜色
       gosub 调色模式
-      后台.点击左键(色轮WinID, 鼠标取色位置X, 鼠标取色位置Y)
+      后台.点击左键(色轮窗口ID, 鼠标取色位置X, 鼠标取色位置Y)
+    }
+    else
+    {
+      gosub 调色模式
+    }
+  }
+  else if (调色盘检测Y>色轮位置Y+(色轮高度H-256)/2+256+16) and (呼出PS取色!=1)
+  {
+    呼出PS取色:=1
+    if (手动取色=0)
+    {
+      取色颜色:=旧取色颜色
+      gosub 调色模式
+      后台.点击左键(色轮窗口ID, 鼠标取色位置X, 鼠标取色位置Y)
     }
     else
     {
@@ -1390,13 +1457,39 @@ loop
       gosub 切换调色盘笔刷样式
     }
   }
-  PixelGetColor, 取色颜色, 色轮位置X+取色位置X, 色轮位置Y+取色位置Y, RGB
+  
+  if (在PS取色=0)
+  {
+    PixelGetColor, 取色颜色, 色轮位置X+取色位置X, 色轮位置Y+取色位置Y, RGB
+    在CSP取色颜色:=取色颜色
+  }
+  else
+  {
+    if (WinExist("ahk_class PSFloatC")!=0x0) ;""内填窗口名称
+    {
+      PixelGetColor, 取色颜色, 拾色器窗口X+350, 拾色器窗口Y+95, RGB
+    }
+    else
+    {
+      PixelGetColor, 取色颜色, 色轮位置X+20, 色轮位置Y+色轮高度H+62, RGB
+    }
+  }
   Gui, 取色环:Color, %取色颜色% ;色环颜色
   Sleep 10
 }
 
+if (WinExist("ahk_class PSFloatC")!=0x0) ;""内填窗口名称
+{
+  WinActivate, ahk_class PSFloatC
+  Send {Enter Down}
+  Sleep 50
+  Send {Enter Up}
+}
+
  ;抬起热键关闭取色环
 Gui, 取色环:Destroy
+WinSet, AlwaysOnTop, Off, ahk_class Photoshop
+WinActivate, ahk_exe CLIPStudioPaint.exe ;窗口置于顶层
 CoordMode, Mouse, Window
 MouseGetPos, 鼠标在色轮位置X, 鼠标在色轮位置Y
 
@@ -1503,7 +1596,9 @@ if (调色盘=1)
     Send {Alt Down}
     Sleep 10
   }
-  Send {%快捷键2%} ;关闭调色盘
+  Send {%快捷键2% Down} ;打开色轮
+  Sleep 50
+  Send {%快捷键2% Up}
   if (Ctrl键2!=0)
   {
     Send {Ctrl Up}
@@ -1532,7 +1627,9 @@ if (Alt键1!=0)
   Send {Alt Down}
   Sleep 10
 }
-Send {%快捷键1%} ;关闭色轮
+Send {%快捷键1% Down} ;打开色轮
+Sleep 50
+Send {%快捷键1% Up}
 if (Ctrl键1!=0)
 {
   Send {Ctrl Up}
@@ -1562,6 +1659,71 @@ MouseMove, 鼠标在屏幕位置X, 鼠标在屏幕位置Y
 色轮:=0
 BlockInput, Off
 BlockInput, MouseMoveOff
+return
+
+PS到CSP色彩更新:
+if (色板位置=1)
+{
+  gosub 更新色板位置
+  鼠标在色轮位置X1:=鼠标在色轮位置X
+  鼠标在色轮位置Y1:=鼠标在色轮位置Y
+  色板1色相角度:=色相角度
+  
+  IniWrite, %鼠标在色轮位置X1%, 色轮设置.ini, 设置, 鼠标在色轮位置X1
+  IniWrite, %鼠标在色轮位置Y1%, 色轮设置.ini, 设置, 鼠标在色轮位置Y1
+  IniWrite, %色板1色相角度%, 色轮设置.ini, 设置, 色板1色相角度
+  IniWrite, %取色颜色%, 色轮设置.ini, 设置, 色板1取色颜色
+  
+  BlockInput, On
+  BlockInput, MouseMove
+  if (简体中文=1)
+  {
+    WinActivate, 色轮
+  }
+  else
+  {
+    WinActivate, 色環
+  }
+  后台.点击左键(色轮窗口ID, 鼠标在色轮位置X1, 鼠标在色轮位置Y1)
+  圆心坐标X:=Round(色轮宽度W/2)
+  圆心坐标Y:=Round(色轮宽度W/2)+12
+  圆的半径:=色轮宽度W/2-10
+  gosub 色相偏移
+  ; ToolTip %色相角度% %绘制坐标X% %绘制坐标Y%
+  BlockInput, MouseMoveOff
+  BlockInput, Off
+}
+else if (色板位置=2)
+{
+  gosub 更新色板位置
+  鼠标在色轮位置X2:=鼠标在色轮位置X
+  鼠标在色轮位置Y2:=鼠标在色轮位置Y
+  色板2色相角度:=色相角度
+  
+  IniWrite, %鼠标在色轮位置X2%, 色轮设置.ini, 设置, 鼠标在色轮位置X2
+  IniWrite, %鼠标在色轮位置Y2%, 色轮设置.ini, 设置, 鼠标在色轮位置Y2
+  IniWrite, %色板2色相角度%, 色轮设置.ini, 设置, 色板2色相角度
+  IniWrite, %取色颜色%, 色轮设置.ini, 设置, 色板2取色颜色
+  
+  BlockInput, On
+  BlockInput, MouseMove
+  if (简体中文=1)
+  {
+    WinActivate, 色轮
+  }
+  else
+  {
+    WinActivate, 色環
+  }
+  后台.点击左键(色轮窗口ID, 鼠标在色轮位置X2, 鼠标在色轮位置Y2)
+  圆心坐标X:=Round(色轮宽度W/2)
+  圆心坐标Y:=Round(色轮宽度W/2)+12
+  圆的半径:=色轮宽度W/2-10
+  gosub 色相偏移
+  ; ToolTip %色相角度% %绘制坐标X% %绘制坐标Y%
+  BlockInput, MouseMoveOff
+  BlockInput, Off
+}
 return
 
 更新色板位置:
@@ -1686,7 +1848,7 @@ if (色板位置=1)
 {
   色板位置:=2
   取色位置X:=65
-  后台.点击左键(色轮WinID, 65, 取色位置Y)
+  后台.点击左键(色轮窗口ID, 65, 取色位置Y)
   色轮位置X:=Round(鼠标在屏幕位置X-鼠标在色轮位置X2)
   色轮位置Y:=Round(鼠标在屏幕位置Y-鼠标在色轮位置Y2)
   if (简体中文=1) and (调色盘=0)
@@ -1703,7 +1865,7 @@ else
 {
   色板位置:=1
   取色位置X:=25
-  后台.点击左键(色轮WinID, 25, 取色位置Y)
+  后台.点击左键(色轮窗口ID, 25, 取色位置Y)
   色轮位置X:=Round(鼠标在屏幕位置X-鼠标在色轮位置X1)
   色轮位置Y:=Round(鼠标在屏幕位置Y-鼠标在色轮位置Y1)
   if (简体中文=1) and (调色盘=0)
@@ -1728,6 +1890,14 @@ loop
 return
 
 调色模式:
+if (呼出调色盘=1)
+{
+  goto 呼出PS取色
+}
+else
+{
+  呼出调色盘:=1
+}
 Send {LButton Up}
 Sleep 10
 if (Ctrl键2!=0)
@@ -1745,7 +1915,9 @@ if (Alt键2!=0)
   Send {Alt Down}
   Sleep 10
 }
-Send {%快捷键2%} ;打开调色盘
+Send {%快捷键2% Down} ;打开色轮
+Sleep 50
+Send {%快捷键2% Up}
 if (Ctrl键2!=0)
 {
   Send {Ctrl Up}
@@ -1817,11 +1989,361 @@ else
 }
 if (简体中文=1)
 {
-  WinMove, 混色, , 色轮位置X+色轮宽度W, 色轮位置Y, 色轮宽度W, 色轮高度H ;移动色轮窗口位置
+  WinMove, 混色, , 色轮位置X+色轮宽度W, 色轮位置Y, 色轮宽度W, 色轮高度H ;移动调色盘窗口位置
 }
 else
 {
-  WinMove, 色彩混合, , 色轮位置X+色轮宽度W, 色轮位置Y, 色轮宽度W, 色轮高度H ;移动色轮窗口位置
+  WinMove, 色彩混合, , 色轮位置X+色轮宽度W, 色轮位置Y, 色轮宽度W, 色轮高度H ;移动调色盘窗口位置
+}
+
+呼出PS取色:
+if (WinExist("ahk_class PSFloatC")!=0x0) ;""内填窗口名称
+{
+  WinActivate, ahk_class PSFloatC
+  Send {Enter Down}
+  Sleep 50
+  Send {Enter Up}
+  Sleep 200
+}
+
+if (呼出PS取色=1)
+{
+  Sleep 100
+  if (色轮位置Y>A_ScreenHeight-色轮高度H*2)
+  {
+    色轮位置Y:=A_ScreenHeight-色轮高度H*2
+  }
+  if (简体中文=1)
+  {
+    WinMove, 色轮, , 色轮位置X, 色轮位置Y, 色轮宽度W, 色轮高度H ;移动色轮窗口位置
+    WinMove, 混色, , 色轮位置X+色轮宽度W, 色轮位置Y, 色轮宽度W, 色轮高度H ;移动调色盘窗口位置
+  }
+  else
+  {
+    WinMove, 色環, , 色轮位置X, 色轮位置Y, 色轮宽度W, 色轮高度H ;移动色轮窗口位置
+    WinMove, 色彩混合, , 色轮位置X+色轮宽度W, 色轮位置Y, 色轮宽度W, 色轮高度H ;移动调色盘窗口位置
+  }
+  ; SetWinDelay, 300
+  WinActivate, ahk_class Photoshop
+  WinRestore, ahk_class Photoshop
+  WinMove, ahk_class Photoshop, , 色轮位置X, 色轮位置Y+色轮高度H, 色轮宽度W*2, 色轮高度H ;移动PS窗口
+  WinSet, AlwaysOnTop, On, ahk_class Photoshop
+  
+  开始计时:=A_TickCount
+  loop ;寻找LAB窗口
+  {
+    寻找耗时:=A_TickCount-开始计时
+    ; ToolTip 寻找LAB窗口中%寻找耗时%ms
+    if (WinExist("ahk_class OWL.Dock")!=0x0) ;""内填窗口名称
+    {
+      ; ToolTip 已找到LAB窗口
+      开始计时:=A_TickCount
+      loop
+      {
+        移动耗时:=A_TickCount-开始计时
+        WinGetPos, LAB窗口X, LAB窗口Y, LAB窗口W, LAB窗口H, ahk_class OWL.Dock
+        LAB窗口目标位置Y:=色轮位置Y+色轮高度H
+        LAB窗口目标宽度W:=色轮宽度W*2
+        ; ToolTip, 移动LAB窗口中%移动耗时%ms`nLAB窗口X%LAB窗口X% 色轮位置X%色轮位置X%`nLAB窗口Y%LAB窗口Y% 色轮位置Y%LAB窗口目标位置Y%`nLAB窗口W%LAB窗口W% 色轮宽度W%LAB窗口目标宽度W%`nLAB窗口H%LAB窗口H% 色轮高度H%色轮高度H%
+        if (LAB窗口X!=色轮位置X) or (LAB窗口Y!=LAB窗口目标位置Y)
+        {
+          CoordMode, Mouse, Screen
+          WinActivate, ahk_class OWL.Dock
+          BlockInput, On
+          MouseMove, LAB窗口X+5, LAB窗口Y+5
+          Send {LButton Down}
+          MouseMove, 色轮位置X+5, LAB窗口目标位置Y+5, 0
+          Sleep 10
+          Send {LButton Up}
+          Sleep 50
+        }
+        else if (LAB窗口W!=LAB窗口目标宽度W) or (LAB窗口H!=色轮高度H)
+        {
+          CoordMode, Mouse, Screen
+          WinActivate, ahk_class OWL.Dock
+          BlockInput, On
+          MouseMove, LAB窗口X+LAB窗口W-5, LAB窗口Y+LAB窗口H-5, 
+          Send {LButton Down}
+          MouseMove, LAB窗口目标宽度W-LAB窗口W, 色轮高度H-LAB窗口H, 0, R
+          Sleep 10
+          Send {LButton Up}
+          Sleep 50
+        }
+        else if (LAB窗口X=色轮位置X) and (LAB窗口Y=LAB窗口目标位置Y) and (LAB窗口W=LAB窗口目标宽度W) and (LAB窗口H=色轮高度H)
+        {
+          BlockInput, Off
+          break, 2
+        }
+        else if (移动耗时>3000)
+        {
+          BlockInput, Off
+          break, 2
+        }
+      }
+    }
+    else if (WinExist("ahk_class OWL.Dock")=0x0)
+    {
+      if (寻找耗时>500)
+      {
+        loop 100
+        {
+          ToolTip 未找到LAB窗口
+          Sleep 30
+        }
+        ToolTip
+        break
+      }
+      Send {F6}
+      Sleep 50
+      WinActivate, ahk_class OWL.Dock
+    }
+  }
+  
+  开始计时:=A_TickCount
+  if (记忆模式=0) ;CSP颜色导入PS
+  {
+    BlockInput, On
+    CoordMode, Mouse, Screen
+    ; MouseGetPos, 鼠标在屏幕位置X, 鼠标在屏幕位置Y
+    PS取色颜色:=StrReplace(取色颜色,"0x")
+    Clipboard:=PS取色颜色
+    Send {n}
+    Sleep 50
+    loop ;寻找拾色器窗口
+    {
+      寻找耗时:=A_TickCount-开始计时
+      ; ToolTip 寻找拾色器窗口中%寻找耗时%ms
+      if (WinExist("ahk_class PSFloatC")!=0x0) ;""内填窗口名称
+      {
+        ; ToolTip 已找到拾色器窗口%寻找耗时%ms 取色颜色%取色颜色%
+        WinActivate, ahk_class PSFloatC
+        WinGetPos, 拾色器窗口X, 拾色器窗口Y
+        break
+      }
+      else if (WinExist("ahk_class PSFloatC")=0x0)
+      {
+        if (寻找耗时>500)
+        {
+          loop 100
+          {
+            ToolTip 未找到拾色器窗口 请检查是否已经设置快捷键为N
+            Sleep 30
+          }
+          ToolTip
+          break
+        }
+        
+        Send {n}
+        Sleep 50
+        WinActivate, ahk_class PSFloatC
+      }
+    }
+    if (拾色器窗口X!=色轮位置X+40) or (拾色器窗口Y!=色轮位置Y+色轮高度H)
+    {
+      MouseMove, 拾色器窗口X+15, 拾色器窗口Y+5, 0
+      Send {LButton Down}
+      MouseMove, 色轮位置X+55, 色轮位置Y+色轮高度H+5, 0
+      Sleep 10
+      Send {LButton Up}
+    }
+    Sleep 10
+    Send {Ctrl Down}
+    Sleep 50
+    Send {v Down}
+    Sleep 50
+    Send {v Up}
+    Send {Ctrl Up}
+    Sleep 50
+    Send {Enter}
+    ; MouseMove, 鼠标在屏幕位置X, 鼠标在屏幕位置Y
+    BlockInput Off
+    Sleep 100
+  }
+}
+return
+
+#IfWinActive ahk_exe CLIPStudioPaint.exe
+$w::
+if (色轮=0)
+{
+  Send {w Down}
+  KeyWait, w
+  Send {w Up}
+  return
+}
+return
+
+$s::
+if (色轮=0)
+{
+  Send {s Down}
+  KeyWait, s
+  Send {s Up}
+  return
+}
+return
+
+$q::
+if (色轮=0)
+{
+  Send {q Down}
+  KeyWait, q
+  Send {q Up}
+  return
+}
+return
+
+$e::
+if (色轮=0)
+{
+  Send {e Down}
+  KeyWait, e
+  Send {e Up}
+  return
+}
+return
+
+$a::
+if (色轮=0)
+{
+  Send {a Down}
+  KeyWait, a
+  Send {a Up}
+  return
+}
+return
+
+$d::
+if (色轮=0)
+{
+  Send {d Down}
+  KeyWait, d
+  Send {d Up}
+  return
+}
+return
+
+$1::
+if (色轮=0)
+{
+  Send {1 Down}
+  KeyWait, 1
+  Send {1 Up}
+  return
+}
+return
+
+$2::
+if (色轮=0)
+{
+  Send {2 Down}
+  KeyWait, 2
+  Send {2 Up}
+  return
+}
+return
+
+$3::
+if (色轮=0)
+{
+  Send {3 Down}
+  KeyWait, 3
+  Send {3 Up}
+  return
+}
+return
+
+$4::
+if (色轮=0)
+{
+  Send {4 Down}
+  KeyWait, 4
+  Send {4 Up}
+  return
+}
+return
+
+$`::
+if (色轮=0)
+{
+  Send {`` Down}
+  KeyWait, ``
+  Send {`` Up}
+  return
+}
+return
+
+Space::
+send {Space Down}
+KeyWait Space
+send {Space Up}
+if (space_presses > 0) ;记录键击.
+{
+  space_presses += 1
+  return
+}
+space_presses := 1
+SetTimer, KeySpace, -400 ; 在 400 毫秒内等待更多的键击.
+return
+
+KeySpace:
+if (space_presses >= 2) ; 此键按下了两次.
+{
+  Send {LWin Down}
+  Send {Ctrl Down}
+  Send {c}
+  Send {LWin Up}
+  Send {Ctrl Up}
+}
+space_presses := 0
+return
+
+KeyLButton:
+if (LButton_presses >= 2) ; 此键按下了两次.
+{
+  ; ToolTip Enter
+  Send {Enter Down}
+  Sleep 50
+  Send {Enter Up}
+  Sleep 100
+  gosub PS到CSP色彩更新
+}
+LButton_presses := 0
+return
+
+~^Enter::
+自动隐藏:=A_TickCount
+KeyWait, Enter
+if (A_TickCount-自动隐藏<=500)
+{
+  if (软件Class名=0)
+  {
+    MouseGetPos, , , WinID
+    WinGetClass, 软件Class名, ahk_id %WinID%
+    IniWrite, %软件Class名%, 色轮设置.ini, 设置, 软件Class名
+    if (软件Class名!=0)
+    {
+      SetTimer, 自动隐藏菜单, 200
+    }
+    loop 50
+    {
+      ToolTip, 已打开自动隐藏功能
+      Sleep 30
+    }
+    ToolTip
+  }
+}
+else
+{
+  软件Class名:=0
+  IniWrite, %软件Class名%, 色轮设置.ini, 设置, 软件Class名
+  SetTimer, 自动隐藏菜单, Delete
+  loop 50
+  {
+    ToolTip, 已关闭自动隐藏功能
+    Sleep 30
+  }
+  ToolTip
 }
 return
 
@@ -2174,19 +2696,20 @@ else if (色相角度>=4.71225) and (色相角度<6.283)
   绘制坐标X:=Round(圆心坐标X-计算坐标X)
   绘制坐标Y:=Round(圆心坐标Y-计算坐标Y)
 }
-后台.点击左键(色轮WinID, 绘制坐标X, 绘制坐标Y)
+后台.点击左键(色轮窗口ID, 绘制坐标X, 绘制坐标Y)
 return
 
 清除调色盘:
-CoordMode, Mouse, Screen
-MouseGetPos, 鼠标在调色盘位置X, 鼠标在调色盘位置Y
-BlockInput, On
-BlockInput, MouseMove
-MouseMove, 色轮位置X+色轮宽度W+255, 色轮位置Y+480, 0
-Send {LButton}
-MouseMove, 鼠标在调色盘位置X, 鼠标在调色盘位置Y, 0
-BlockInput, Off
-BlockInput, MouseMoveOff
+后台.点击左键(调色盘窗口ID, 255, 480)
+; CoordMode, Mouse, Screen
+; MouseGetPos, 鼠标在调色盘位置X, 鼠标在调色盘位置Y
+; BlockInput, On
+; BlockInput, MouseMove
+; MouseMove, 色轮位置X+色轮宽度W+255, 色轮位置Y+480, 0
+; Send {LButton}
+; MouseMove, 鼠标在调色盘位置X, 鼠标在调色盘位置Y, 0
+; BlockInput, Off
+; BlockInput, MouseMoveOff
 return
 
 撤回还原调色盘:
@@ -2200,29 +2723,31 @@ loop
   }
   else if (记录时间>350) ;还原
   {
-    CoordMode, Mouse, Screen
-    MouseGetPos, 鼠标在调色盘位置X, 鼠标在调色盘位置Y
-    BlockInput, On
-    BlockInput, MouseMove
-    MouseMove, 色轮位置X+色轮宽度W+295, 色轮位置Y+480, 0
-    Send {LButton}
-    MouseMove, 鼠标在调色盘位置X, 鼠标在调色盘位置Y, 0
-    BlockInput, Off
-    BlockInput, MouseMoveOff
+    后台.点击左键(调色盘窗口ID, 295, 480)
+    ; CoordMode, Mouse, Screen
+    ; MouseGetPos, 鼠标在调色盘位置X, 鼠标在调色盘位置Y
+    ; BlockInput, On
+    ; BlockInput, MouseMove
+    ; MouseMove, 色轮位置X+色轮宽度W+295, 色轮位置Y+480, 0
+    ; Send {LButton}
+    ; MouseMove, 鼠标在调色盘位置X, 鼠标在调色盘位置Y, 0
+    ; BlockInput, Off
+    ; BlockInput, MouseMoveOff
     Sleep 200
   }
 }
 if (记录时间<=350) ;撤回
 {
-  CoordMode, Mouse, Screen
-  MouseGetPos, 鼠标在调色盘位置X, 鼠标在调色盘位置Y
-  BlockInput, On
-  BlockInput, MouseMove
-  MouseMove, 色轮位置X+色轮宽度W+275, 色轮位置Y+480, 0
-  Send {LButton}
-  MouseMove, 鼠标在调色盘位置X, 鼠标在调色盘位置Y, 0
-  BlockInput, Off
-  BlockInput, MouseMoveOff
+  后台.点击左键(调色盘窗口ID, 275, 480)
+  ; CoordMode, Mouse, Screen
+  ; MouseGetPos, 鼠标在调色盘位置X, 鼠标在调色盘位置Y
+  ; BlockInput, On
+  ; BlockInput, MouseMove
+  ; MouseMove, 色轮位置X+色轮宽度W+275, 色轮位置Y+480, 0
+  ; Send {LButton}
+  ; MouseMove, 鼠标在调色盘位置X, 鼠标在调色盘位置Y, 0
+  ; BlockInput, Off
+  ; BlockInput, MouseMoveOff
 }
 return
 
@@ -2235,15 +2760,17 @@ if (调色盘笔刷大小<0)
 }
 if (调色盘笔刷大小!=旧调色盘笔刷大小)
 {
-  CoordMode, Mouse, Screen
-  MouseGetPos, 鼠标在调色盘位置X, 鼠标在调色盘位置Y
-  BlockInput, On
-  BlockInput, MouseMove
-  MouseMove, 色轮位置X+色轮宽度W+323+20*调色盘笔刷大小, 色轮位置Y+480, 0
-  Send {LButton}
-  MouseMove, 鼠标在调色盘位置X, 鼠标在调色盘位置Y, 0
-  BlockInput, Off
-  BlockInput, MouseMoveOff
+  调色盘笔刷变小:=323+20*调色盘笔刷大小
+  后台.点击左键(调色盘窗口ID, 调色盘笔刷变小, 480)
+  ; CoordMode, Mouse, Screen
+  ; MouseGetPos, 鼠标在调色盘位置X, 鼠标在调色盘位置Y
+  ; BlockInput, On
+  ; BlockInput, MouseMove
+  ; MouseMove, 色轮位置X+色轮宽度W+323+20*调色盘笔刷大小, 色轮位置Y+480, 0
+  ; Send {LButton}
+  ; MouseMove, 鼠标在调色盘位置X, 鼠标在调色盘位置Y, 0
+  ; BlockInput, Off
+  ; BlockInput, MouseMoveOff
 }
 KeyWait, 2
 return
@@ -2257,15 +2784,17 @@ if (调色盘笔刷大小>2)
 }
 if (调色盘笔刷大小!=旧调色盘笔刷大小)
 {
-  CoordMode, Mouse, Screen
-  MouseGetPos, 鼠标在调色盘位置X, 鼠标在调色盘位置Y
-  BlockInput, On
-  BlockInput, MouseMove
-  MouseMove, 色轮位置X+色轮宽度W+323+20*调色盘笔刷大小, 色轮位置Y+480, 0
-  Send {LButton}
-  MouseMove, 鼠标在调色盘位置X, 鼠标在调色盘位置Y, 0
-  BlockInput, Off
-  BlockInput, MouseMoveOff
+  调色盘笔刷变大:=323+20*调色盘笔刷大小
+  后台.点击左键(调色盘窗口ID, 调色盘笔刷变大, 480)
+  ; CoordMode, Mouse, Screen
+  ; MouseGetPos, 鼠标在调色盘位置X, 鼠标在调色盘位置Y
+  ; BlockInput, On
+  ; BlockInput, MouseMove
+  ; MouseMove, 色轮位置X+色轮宽度W+323+20*调色盘笔刷大小, 色轮位置Y+480, 0
+  ; Send {LButton}
+  ; MouseMove, 鼠标在调色盘位置X, 鼠标在调色盘位置Y, 0
+  ; BlockInput, Off
+  ; BlockInput, MouseMoveOff
 }
 KeyWait, 3
 return
@@ -2276,14 +2805,16 @@ if (调色盘笔刷样式>2)
 {
   调色盘笔刷样式:=0
 }
-CoordMode, Mouse, Screen
-MouseGetPos, 鼠标在调色盘位置X, 鼠标在调色盘位置Y
-BlockInput, On
-BlockInput, MouseMove
-MouseMove, 色轮位置X+色轮宽度W+390+20*调色盘笔刷样式, 色轮位置Y+480, 0
-Send {LButton}
-MouseMove, 鼠标在调色盘位置X, 鼠标在调色盘位置Y, 0
-BlockInput, Off
-BlockInput, MouseMoveOff
+切换调色盘笔刷样式:=390+20*调色盘笔刷样式
+后台.点击左键(调色盘窗口ID, 切换调色盘笔刷样式, 480)
+; CoordMode, Mouse, Screen
+; MouseGetPos, 鼠标在调色盘位置X, 鼠标在调色盘位置Y
+; BlockInput, On
+; BlockInput, MouseMove
+; MouseMove, 色轮位置X+色轮宽度W+390+20*调色盘笔刷样式, 色轮位置Y+480, 0
+; Send {LButton}
+; MouseMove, 鼠标在调色盘位置X, 鼠标在调色盘位置Y, 0
+; BlockInput, Off
+; BlockInput, MouseMoveOff
 KeyWait, 4
 return
