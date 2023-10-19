@@ -1002,34 +1002,69 @@ if (简体中文=1)
       ; ToolTip 已找到色轮
       break
     }
-    else if (寻找耗时>500)
+    else
     {
-      色轮:=0
-      BlockInput, On
-      BlockInput, MouseMove
-      Sleep 10
-      Send {space Down}
-      Send {LButton Down}
-      CoordMode, Mouse, Screen
-      MouseMove, 移动画布距离, 0, 0, R
-      Sleep 10
-      Send {LButton Up}
-      Send {space Up}
-      if (全屏=1) ;如果之前进入了全屏则退出全屏
+      if (寻找耗时>3000)
       {
-        Send {Tab}
-        全屏:=0
+        色轮:=0
+        BlockInput, On
+        BlockInput, MouseMove
+        Sleep 10
+        Send {space Down}
+        Send {LButton Down}
+        CoordMode, Mouse, Screen
+        MouseMove, 移动画布距离, 0, 0, R
+        Sleep 10
+        Send {LButton Up}
+        Send {space Up}
+        if (全屏=1) ;如果之前进入了全屏则退出全屏
+        {
+          Send {Tab}
+          全屏:=0
+        }
+        MouseMove, 鼠标在屏幕位置X, 鼠标在屏幕位置Y
+        BlockInput, Off
+        BlockInput, MouseMoveOff
+        loop 100
+        {
+          ToolTip 未找到色轮 请检查呼出色轮快捷键设置是否正确
+          Sleep 30
+        }
+        ToolTip
+        return
       }
-      MouseMove, 鼠标在屏幕位置X, 鼠标在屏幕位置Y
-      BlockInput, Off
-      BlockInput, MouseMoveOff
-      loop 100
+      
+      if (Ctrl键1!=0)
       {
-        ToolTip 未找到色轮 请检查呼出色轮快捷键设置是否正确
-        Sleep 30
+        Send {Ctrl Down}
+        Sleep 10
       }
-      ToolTip
-      return
+      if (Shift键1!=0)
+      {
+        Send {Shift Down}
+        Sleep 10
+      }
+      if (Alt键1!=0)
+      {
+        Send {Alt Down}
+        Sleep 10
+      }
+      Send {%快捷键1% Down} ;打开色轮
+      Sleep 50
+      Send {%快捷键1% Up}
+      if (Ctrl键1!=0)
+      {
+        Send {Ctrl Up}
+      }
+      if (Shift键1!=0)
+      {
+        Send {Shift Up}
+      }
+      if (Alt键1!=0)
+      {
+        Send {Alt Up}
+      }
+      Sleep 300
     }
   }
 }
@@ -1046,34 +1081,69 @@ else
       ; ToolTip 已找到色轮
       break
     }
-    else if (寻找耗时>500)
+    else
     {
-      色轮:=0
-      BlockInput, On
-      BlockInput, MouseMove
-      Sleep 10
-      Send {space Down}
-      Send {LButton Down}
-      CoordMode, Mouse, Screen
-      MouseMove, 移动画布距离, 0, 0, R
-      Sleep 10
-      Send {LButton Up}
-      Send {space Up}
-      if (全屏=1) ;如果之前进入了全屏则退出全屏
+      if (寻找耗时>3000)
       {
-        Send {Tab}
-        全屏:=0
+        色轮:=0
+        BlockInput, On
+        BlockInput, MouseMove
+        Sleep 10
+        Send {space Down}
+        Send {LButton Down}
+        CoordMode, Mouse, Screen
+        MouseMove, 移动画布距离, 0, 0, R
+        Sleep 10
+        Send {LButton Up}
+        Send {space Up}
+        if (全屏=1) ;如果之前进入了全屏则退出全屏
+        {
+          Send {Tab}
+          全屏:=0
+        }
+        MouseMove, 鼠标在屏幕位置X, 鼠标在屏幕位置Y
+        BlockInput, Off
+        BlockInput, MouseMoveOff
+        loop 100
+        {
+          ToolTip 未找到色轮 请检查呼出色轮快捷键设置是否正确
+          Sleep 30
+        }
+        ToolTip
+        return
       }
-      MouseMove, 鼠标在屏幕位置X, 鼠标在屏幕位置Y
-      BlockInput, Off
-      BlockInput, MouseMoveOff
-      loop 100
+      
+      if (Ctrl键1!=0)
       {
-        ToolTip 未找到色轮 请检查呼出色轮快捷键设置是否正确
-        Sleep 30
+        Send {Ctrl Down}
+        Sleep 10
       }
-      ToolTip
-      return
+      if (Shift键1!=0)
+      {
+        Send {Shift Down}
+        Sleep 10
+      }
+      if (Alt键1!=0)
+      {
+        Send {Alt Down}
+        Sleep 10
+      }
+      Send {%快捷键1% Down} ;打开色轮
+      Sleep 50
+      Send {%快捷键1% Up}
+      if (Ctrl键1!=0)
+      {
+        Send {Ctrl Up}
+      }
+      if (Shift键1!=0)
+      {
+        Send {Shift Up}
+      }
+      if (Alt键1!=0)
+      {
+        Send {Alt Up}
+      }
+      Sleep 300
     }
   }
 }
@@ -1391,7 +1461,7 @@ loop
       gosub 调色模式
     }
   }
-  else if (调色盘检测Y>色轮位置Y+(色轮高度H-256)/2+256+16) and (呼出PS取色!=1)
+  else if (调色盘检测Y>色轮位置Y+色轮高度H) and (呼出PS取色!=1)
   {
     呼出PS取色:=1
     if (手动取色=0)
@@ -1580,67 +1650,73 @@ BlockInput, MouseMove
 Send {LButton Up} ;结束取色
 if (调色盘=1)
 {
-  调色盘:=0
-  if (Ctrl键2!=0)
+  if !(WinExist("混色")=0) or !(WinExist("色彩混合")=0)
+  {
+    调色盘:=0
+    if (Ctrl键2!=0)
+    {
+      Send {Ctrl Down}
+      Sleep 10
+    }
+    if (Shift键2!=0)
+    {
+      Send {Shift Down}
+      Sleep 10
+    }
+    if (Alt键2!=0)
+    {
+      Send {Alt Down}
+      Sleep 10
+    }
+    Send {%快捷键2% Down} ;打开色轮
+    Sleep 50
+    Send {%快捷键2% Up}
+    if (Ctrl键2!=0)
+    {
+      Send {Ctrl Up}
+    }
+    if (Shift键2!=0)
+    {
+      Send {Shift Up}
+    }
+    if (Alt键2!=0)
+    {
+      Send {Alt Up}
+    }
+  }
+}
+if !(WinExist("色轮")=0) or !(WinExist("色環")=0)
+{
+  if (Ctrl键1!=0)
   {
     Send {Ctrl Down}
     Sleep 10
   }
-  if (Shift键2!=0)
+  if (Shift键1!=0)
   {
     Send {Shift Down}
     Sleep 10
   }
-  if (Alt键2!=0)
+  if (Alt键1!=0)
   {
     Send {Alt Down}
     Sleep 10
   }
-  Send {%快捷键2% Down} ;打开色轮
+  Send {%快捷键1% Down} ;打开色轮
   Sleep 50
-  Send {%快捷键2% Up}
-  if (Ctrl键2!=0)
+  Send {%快捷键1% Up}
+  if (Ctrl键1!=0)
   {
     Send {Ctrl Up}
   }
-  if (Shift键2!=0)
+  if (Shift键1!=0)
   {
     Send {Shift Up}
   }
-  if (Alt键2!=0)
+  if (Alt键1!=0)
   {
     Send {Alt Up}
   }
-}
-if (Ctrl键1!=0)
-{
-  Send {Ctrl Down}
-  Sleep 10
-}
-if (Shift键1!=0)
-{
-  Send {Shift Down}
-  Sleep 10
-}
-if (Alt键1!=0)
-{
-  Send {Alt Down}
-  Sleep 10
-}
-Send {%快捷键1% Down} ;打开色轮
-Sleep 50
-Send {%快捷键1% Up}
-if (Ctrl键1!=0)
-{
-  Send {Ctrl Up}
-}
-if (Shift键1!=0)
-{
-  Send {Shift Up}
-}
-if (Alt键1!=0)
-{
-  Send {Alt Up}
 }
 Sleep 10
 Send {space Down}
@@ -1944,18 +2020,63 @@ if (简体中文=1)
       ; ToolTip 已找到调色盘
       break
     }
-    else if (寻找耗时>500)
+    else
     {
-      调色盘:=0
-      BlockInput, Off
-      BlockInput, MouseMoveOff
-      loop 100
+      if (寻找耗时>3000)
       {
-        ToolTip 未找到调色盘 请检查呼出调色盘快捷键设置是否正确
-        Sleep 30
+        调色盘:=0
+        BlockInput, Off
+        BlockInput, MouseMoveOff
+        loop 100
+        {
+          ToolTip 未找到调色盘 请检查呼出调色盘快捷键设置是否正确
+          Sleep 30
+        }
+        ToolTip
+        return
       }
-      ToolTip
-      return
+      
+      if (呼出调色盘=1)
+      {
+        goto 呼出PS取色
+      }
+      else
+      {
+        呼出调色盘:=1
+      }
+      Send {LButton Up}
+      Sleep 10
+      if (Ctrl键2!=0)
+      {
+        Send {Ctrl Down}
+        Sleep 10
+      }
+      if (Shift键2!=0)
+      {
+        Send {Shift Down}
+        Sleep 10
+      }
+      if (Alt键2!=0)
+      {
+        Send {Alt Down}
+        Sleep 10
+      }
+      Send {%快捷键2% Down} ;打开色轮
+      Sleep 50
+      Send {%快捷键2% Up}
+      if (Ctrl键2!=0)
+      {
+        Send {Ctrl Up}
+      }
+      if (Shift键2!=0)
+      {
+        Send {Shift Up}
+      }
+      if (Alt键2!=0)
+      {
+        Send {Alt Up}
+      }
+      Sleep 300
     }
   }
 }
@@ -1972,18 +2093,63 @@ else
       ; ToolTip 已找到调色盘
       break
     }
-    else if (寻找耗时>500)
+    else
     {
-      调色盘:=0
-      BlockInput, Off
-      BlockInput, MouseMoveOff
-      loop 100
+      if (寻找耗时>3000)
       {
-        ToolTip 未找到调色盘 请检查呼出调色盘快捷键设置是否正确
-        Sleep 30
+        调色盘:=0
+        BlockInput, Off
+        BlockInput, MouseMoveOff
+        loop 100
+        {
+          ToolTip 未找到调色盘 请检查呼出调色盘快捷键设置是否正确
+          Sleep 30
+        }
+        ToolTip
+        return
       }
-      ToolTip
-      return
+      
+      if (呼出调色盘=1)
+      {
+        goto 呼出PS取色
+      }
+      else
+      {
+        呼出调色盘:=1
+      }
+      Send {LButton Up}
+      Sleep 10
+      if (Ctrl键2!=0)
+      {
+        Send {Ctrl Down}
+        Sleep 10
+      }
+      if (Shift键2!=0)
+      {
+        Send {Shift Down}
+        Sleep 10
+      }
+      if (Alt键2!=0)
+      {
+        Send {Alt Down}
+        Sleep 10
+      }
+      Send {%快捷键2% Down} ;打开色轮
+      Sleep 50
+      Send {%快捷键2% Up}
+      if (Ctrl键2!=0)
+      {
+        Send {Ctrl Up}
+      }
+      if (Shift键2!=0)
+      {
+        Send {Shift Up}
+      }
+      if (Alt键2!=0)
+      {
+        Send {Alt Up}
+      }
+      Sleep 300
     }
   }
 }
@@ -2091,7 +2257,7 @@ if (呼出PS取色=1)
           Sleep 30
         }
         ToolTip
-        break
+        return
       }
       Send {F6}
       Sleep 50
@@ -2130,7 +2296,7 @@ if (呼出PS取色=1)
             Sleep 30
           }
           ToolTip
-          break
+          return
         }
         
         Send {n}
