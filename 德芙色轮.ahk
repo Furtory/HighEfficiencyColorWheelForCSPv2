@@ -30,14 +30,17 @@ SetWorkingDir %A_ScriptDir%
 Menu, Tray, Icon, %A_ScriptDir%\LOGO.ico
 Menu, Tray, NoStandard ;不显示默认的AHK右键菜单
 Menu, Tray, Add, 使用教程, 使用教程 ;添加新的右键菜单
-Menu, Tray, Add, 重置设置, 初始设置 ;添加新的右键菜单
-Menu, Tray, Add, 简体中文, 语言设置 ;添加新的右键菜单
+Menu, Tray, Add, 软件更新, 软件更新 ;添加新的右键菜单
+Menu, Tray, Add
 Menu, Tray, Add, 画布设置, 画布设置 ;添加新的右键菜单
-; Menu, Tray, Add, PS取色, PS取色 ;添加新的右键菜单
 Menu, Tray, Add, 快捷设置, 快捷设置 ;添加新的右键菜单
 Menu, Tray, Add, 色环矫正, 色环矫正 ;添加新的右键菜单
+Menu, Tray, Add, 重置设置, 初始设置 ;添加新的右键菜单
+Menu, Tray, Add
+Menu, Tray, Add, 简体中文, 语言设置 ;添加新的右键菜单
 Menu, Tray, Add, 记忆模式, 记忆模式 ;添加新的右键菜单
 Menu, Tray, Add, 开机自启, 开机自启 ;添加新的右键菜单
+Menu, Tray, Add
 Menu, Tray, Add, 重启软件, 重启软件 ;添加新的右键菜单
 Menu, Tray, Add, 退出软件, 退出软件 ;添加新的右键菜单
 
@@ -52,6 +55,7 @@ Menu, Tray, Add, 退出软件, 退出软件 ;添加新的右键菜单
 延迟执行:=0
 面板自动展开:=0
 软件Class名:=0
+初次搜索:=1
 
 autostartLnk:=A_StartupCommon . "\HighEfficiencyColorWheelForCSPv2.lnk" ;开机启动文件的路径
 IfExist, % autostartLnk ;检查开机启动的文件是否存在
@@ -315,7 +319,6 @@ if (软件前台!=0x0)
         break
       }
     }
-    Send {Ctrl Down}
     ImageSearch, , , 0, 0, A_ScreenWidth, A_ScreenHeight/10, *10 %A_ScriptDir%\隐藏工具栏.png
     if (ErrorLevel=1) ;隐藏
     {
@@ -323,7 +326,6 @@ if (软件前台!=0x0)
       Sleep 50
       Send {F3 Up}
     }
-    Send {Ctrl Up}
     Send {Shift Up}
     菜单隐藏:=0
     延迟执行:=1
@@ -411,7 +413,6 @@ if (软件前台!=0x0)
         break
       }
     }
-    Send {Ctrl Down}
     ImageSearch, , , 0, 0, A_ScreenWidth, A_ScreenHeight/10, *10 %A_ScriptDir%\隐藏工具栏.png
     if (ErrorLevel=0) ;显示
     {
@@ -419,7 +420,6 @@ if (软件前台!=0x0)
       Sleep 50
       Send {F3 Up}
     }
-    Send {Ctrl Up}
     Send {Shift Up}
     菜单隐藏:=1
   }
@@ -428,7 +428,65 @@ if (软件前台!=0x0)
   if (面板展开=0) and (MY>A_ScreenHeight/20)
   {
     CoordMode, Pixel, Screen
-    if (MX<=A_ScreenWidth/20) or (MX>=A_ScreenWidth-A_ScreenWidth/20) ;展开面板
+    ImageSearch, 隐藏面板XL1, , A_ScreenWidth/15, 0, A_ScreenWidth/2, A_ScreenHeight/10, *10 %A_ScriptDir%\全屏识别.png
+    if (ErrorLevel=1)
+    {
+      隐藏面板XL1:=Round(A_ScreenWidth/15)
+    }
+    else if (ErrorLevel=0)
+    {
+      隐藏面板XL1:=隐藏面板XL1+23
+    }
+    ImageSearch, 隐藏面板XL2, , A_ScreenWidth/15, 0, A_ScreenWidth/2, A_ScreenHeight/10, *10 %A_ScriptDir%\右箭头.png
+    if (ErrorLevel=1)
+    {
+      隐藏面板XL2:=Round(A_ScreenWidth/15)
+    }
+    else if (ErrorLevel=0)
+    {
+      隐藏面板XL2:=隐藏面板XL2+20
+    }
+    
+    if (隐藏面板XL1<隐藏面板XL2)
+    {
+      隐藏面板XL:=Round(隐藏面板XL2)
+    }
+    else
+    {
+      隐藏面板XL:=Round(隐藏面板XL1)
+    }
+    
+    ImageSearch, 隐藏面板XR1, , A_ScreenWidth/2, 0, A_ScreenWidth-A_ScreenWidth/15, A_ScreenHeight/10, *10 %A_ScriptDir%\全屏识别.png
+    if (ErrorLevel=1)
+    {
+      隐藏面板XR1:=Round(A_ScreenWidth-A_ScreenWidth/15)
+    }
+    else if (ErrorLevel=0)
+    {
+      隐藏面板XR1:=隐藏面板XR1-18
+    }
+    ImageSearch, 隐藏面板XR2, , A_ScreenWidth/2, 0, A_ScreenWidth-A_ScreenWidth/15, A_ScreenHeight/10, *10 %A_ScriptDir%\左箭头.png
+    if (ErrorLevel=1)
+    {
+      隐藏面板XR2:=Round(A_ScreenWidth-A_ScreenWidth/15)
+    }
+    else if (ErrorLevel=0)
+    {
+      隐藏面板XR2:=隐藏面板XR2-18
+    }
+    
+    if (隐藏面板XR1>隐藏面板XR2)
+    {
+      隐藏面板XR:=Round(隐藏面板XR2)
+    }
+    else
+    {
+      隐藏面板XR:=Round(隐藏面板XR1)
+    }
+    
+    ; ToolTip 隐藏面板XL%隐藏面板XL% MX%MX% 隐藏面板XR%隐藏面板XR%`n隐藏面板XL1 %隐藏面板XL1% 隐藏面板XL2 %隐藏面板XL2%`n隐藏面板XR1 %隐藏面板XR1% 隐藏面板XR2 %隐藏面板XR2%
+    
+    if (MX<=A_ScreenWidth/30) or (MX>=A_ScreenWidth-A_ScreenWidth/30) ;展开面板
     {
       loop
       {
@@ -454,7 +512,7 @@ if (软件前台!=0x0)
       }
       面板自动展开:=1
     }
-    else if (MX>=A_ScreenWidth/8) and (MX<=A_ScreenWidth-A_ScreenWidth/8) ;隐藏面板
+    else if (MX>=隐藏面板XL) and (MX<=隐藏面板XR) ;隐藏面板
     {
       loop
       {
@@ -464,7 +522,7 @@ if (软件前台!=0x0)
         }
         else
         {
-          ImageSearch, , , 0, 0, A_ScreenWidth, A_ScreenHeight, *10 %A_ScriptDir%\全屏识别.png
+          ImageSearch, , , A_ScreenWidth/20, 0, A_ScreenWidth-A_ScreenWidth/20, A_ScreenHeight/10, *10 %A_ScriptDir%\全屏识别.png
           if (ErrorLevel=0)
           {
             Send {Tab Down}
@@ -685,7 +743,11 @@ ToolTip
 return
 
 使用教程:
-MsgBox, , 德芙色轮, 黑钨重工出品 免费开源 请勿商用 侵权必究`n`n目前仅支持1080p屏幕 100`%缩放`nCSP v2版本 请使用HSV色轮`nCSP需要设置呼出色轮的快捷键`n设置的位置在`:文件`-快捷键设置`-主菜单`-窗口`-色環/色轮 色彩混合/混色`nPS需要设置呼出前景色拾色器的快捷键`n设置的位置在:工具`n请在数位板设置中关闭Windows Ink功能`n画布设置的意思是`:`n画布的多大范围内按下Tab才能呼出色轮`n如果取色环显示位置不准`n请打开色环矫正后使用上下左右箭头修正`n`nCtrl+Enter键 短按打开自动隐藏功能 长按关闭自动隐藏功能`n自动隐藏需要设置命令列的快捷键为Ctrl`+Shift`+F3`n按住Tab键 或 鼠标中键 触发德芙色轮`nW 切换色板`nQ和E 或者 滚轮 控制色相慢速左旋和右旋`nA和D 控制色相快速左旋和右旋`n松开Tab 或 鼠标中键 完成取色`n`n按下S打开或关闭记忆模式`n每次打开色轮使用上次在色轮中取的色`n而不使用在画布上取的颜色`n当打开调色盘时`n重音符 清空调色盘`n数字1 短按撤回 长按还原`n数字2和数字3 控制笔刷大小`n数字4 切换笔刷样式`n`n双击空格 以亮度为基准黑白显示`n需要打开系统设置`-轻松使用`-颜色滤镜`-允许使用快捷键打开滤镜`n`n新后无法运行请删除ini文件后重新运行本软件`n`n更多免费教程尽在QQ群 1群763625227 2群643763519
+MsgBox, , 德芙色轮, 黑钨重工出品 免费开源 请勿商用 侵权必究`n`n目前仅支持1080p屏幕 100`%缩放`nCSP v2版本 请使用HSV色轮`nCSP需要设置呼出色轮的快捷键`n设置的位置在`:文件`-快捷键设置`-主菜单`-窗口`-色環/色轮 色彩混合/混色`nPS需要设置呼出前景色拾色器的快捷键`n设置的位置在:工具`n请在数位板设置中关闭Windows Ink功能`n画布设置的意思是`:`n画布的多大范围内按下Tab才能呼出色轮`n如果取色环显示位置不准`n请打开色环矫正后使用上下左右箭头修正`n`nCtrl+Enter键 短按打开自动隐藏功能 长按关闭自动隐藏功能`n自动隐藏需要设置命令列的快捷键为Shift`+F3`n按住Tab键 或 鼠标中键 触发德芙色轮`nW 切换色板`nQ和E 或者 滚轮 控制色相慢速左旋和右旋`nA和D 控制色相快速左旋和右旋`n松开Tab 或 鼠标中键 完成取色`n`n按下S打开或关闭记忆模式`n每次打开色轮使用上次在色轮中取的色`n而不使用在画布上取的颜色`n当打开调色盘时`n重音符 清空调色盘`n数字1 短按撤回 长按还原`n数字2和数字3 控制笔刷大小`n数字4 切换笔刷样式`nAlt`+A`/D 切换上一个下一个画布`n`n双击空格 以亮度为基准黑白显示`n需要打开系统设置`-轻松使用`-颜色滤镜`-允许使用快捷键打开滤镜`n`n新后无法运行请删除ini文件后重新运行本软件`n`n更多免费教程尽在QQ群 1群763625227 2群643763519
+return
+
+软件更新:
+Run https://github.com/Furtory/HighEfficiencyColorWheelForCSPv2
 return
 
 快捷设置:
@@ -774,10 +836,11 @@ else ;开启开机自启动
 Critical, Off
 return
 
+PgUp & PgDn::Reload
 重启软件:
 Reload
 
-^0::
+Home & End::ExitApp
 退出软件:
 ExitApp
 
@@ -958,6 +1021,7 @@ Send {space Up}
 MouseMove, 移动画布距离, 0, 0, R
 
  ;打开色轮并检测是否打开
+BlockInput, Send
 if (Ctrl键1!=0)
 {
   Send {Ctrl Down}
@@ -1000,6 +1064,7 @@ if (简体中文=1)
       色轮:=1
       色轮窗口ID:=WinExist("色轮") ;""内填窗口名称
       ; ToolTip 已找到色轮
+      BlockInput, Default
       break
     }
     else
@@ -1007,7 +1072,6 @@ if (简体中文=1)
       if (寻找耗时>3000)
       {
         色轮:=0
-        BlockInput, On
         BlockInput, MouseMove
         Sleep 10
         Send {space Down}
@@ -1023,8 +1087,7 @@ if (简体中文=1)
           全屏:=0
         }
         MouseMove, 鼠标在屏幕位置X, 鼠标在屏幕位置Y
-        BlockInput, Off
-        BlockInput, MouseMoveOff
+        BlockInput, Default
         loop 100
         {
           ToolTip 未找到色轮 请检查呼出色轮快捷键设置是否正确
@@ -1086,7 +1149,6 @@ else
       if (寻找耗时>3000)
       {
         色轮:=0
-        BlockInput, On
         BlockInput, MouseMove
         Sleep 10
         Send {space Down}
@@ -1102,8 +1164,7 @@ else
           全屏:=0
         }
         MouseMove, 鼠标在屏幕位置X, 鼠标在屏幕位置Y
-        BlockInput, Off
-        BlockInput, MouseMoveOff
+        BlockInput, Default
         loop 100
         {
           ToolTip 未找到色轮 请检查呼出色轮快捷键设置是否正确
@@ -1966,6 +2027,7 @@ loop
 return
 
 调色模式:
+BlockInput, Send
 if (呼出调色盘=1)
 {
   goto 呼出PS取色
@@ -2025,8 +2087,7 @@ if (简体中文=1)
       if (寻找耗时>3000)
       {
         调色盘:=0
-        BlockInput, Off
-        BlockInput, MouseMoveOff
+        BlockInput, Default
         loop 100
         {
           ToolTip 未找到调色盘 请检查呼出调色盘快捷键设置是否正确
@@ -2098,8 +2159,7 @@ else
       if (寻找耗时>3000)
       {
         调色盘:=0
-        BlockInput, Off
-        BlockInput, MouseMoveOff
+        BlockInput, Default
         loop 100
         {
           ToolTip 未找到调色盘 请检查呼出调色盘快捷键设置是否正确
@@ -2253,7 +2313,7 @@ if (呼出PS取色=1)
       {
         loop 100
         {
-          ToolTip 未找到LAB窗口
+          ToolTip 未找到LAB窗口 请检查PS是否已经打开
           Sleep 30
         }
         ToolTip
@@ -2329,16 +2389,6 @@ if (呼出PS取色=1)
 return
 
 #IfWinActive ahk_exe CLIPStudioPaint.exe
-$w::
-if (色轮=0)
-{
-  Send {w Down}
-  KeyWait, w
-  Send {w Up}
-  return
-}
-return
-
 $s::
 if (色轮=0)
 {
@@ -2349,83 +2399,221 @@ if (色轮=0)
 }
 return
 
-$q::
-if (色轮=0)
-{
-  Send {q Down}
-  KeyWait, q
-  Send {q Up}
-  return
-}
-return
-
 $e::
 if (色轮=0)
 {
   Send {e Down}
-  KeyWait, e
+  KeyWait, s
   Send {e Up}
   return
+}
+return
+
+$w::
+if (色轮=0)
+{
+  loop
+  {
+    Send {w Down}
+    Sleep 50
+    Send {w Up}
+    
+    if (A_Index=1)
+    {
+      Sleep 200
+    }
+    
+    if !GetKeyState("w", "P")
+    {
+      break
+    }
+    else if GetKeyState("w", "P")
+    {
+      Sleep 50
+    }
+  }
+}
+return
+
+$q::
+if (色轮=0)
+{
+  loop
+  {
+    Send {q Down}
+    Sleep 50
+    Send {q Up}
+    
+    if (A_Index=1)
+    {
+      Sleep 200
+    }
+    
+    if !GetKeyState("q", "P")
+    {
+      break
+    }
+    else if GetKeyState("q", "P")
+    {
+      Sleep 50
+    }
+  }
 }
 return
 
 $a::
 if (色轮=0)
 {
-  Send {a Down}
-  KeyWait, a
-  Send {a Up}
-  return
+  loop
+  {
+    Send {a Down}
+    Sleep 50
+    Send {a Up}
+    
+    if (A_Index=1)
+    {
+      Sleep 200
+    }
+    
+    if !GetKeyState("a", "P")
+    {
+      break
+    }
+    else if GetKeyState("a", "P")
+    {
+      Sleep 50
+    }
+  }
 }
 return
 
 $d::
 if (色轮=0)
 {
-  Send {d Down}
-  KeyWait, d
-  Send {d Up}
-  return
+  loop
+  {
+    Send {d Down}
+    Sleep 50
+    Send {d Up}
+    
+    if (A_Index=1)
+    {
+      Sleep 200
+    }
+    
+    if !GetKeyState("d", "P")
+    {
+      break
+    }
+    else if GetKeyState("d", "P")
+    {
+      Sleep 50
+    }
+  }
 }
 return
 
 $1::
 if (色轮=0)
 {
-  Send {1 Down}
-  KeyWait, 1
-  Send {1 Up}
-  return
+  loop
+  {
+    Send {1 Down}
+    Sleep 50
+    Send {1 Up}
+    
+    if (A_Index=1)
+    {
+      Sleep 200
+    }
+    
+    if !GetKeyState("w", "P")
+    {
+      break
+    }
+    else if GetKeyState("w", "P")
+    {
+      Sleep 50
+    }
+  }
 }
 return
 
 $2::
 if (色轮=0)
 {
-  Send {2 Down}
-  KeyWait, 2
-  Send {2 Up}
-  return
+  loop
+  {
+    Send {2 Down}
+    Sleep 50
+    Send {2 Up}
+    
+    if (A_Index=1)
+    {
+      Sleep 200
+    }
+    
+    if !GetKeyState("2", "P")
+    {
+      break
+    }
+    else if GetKeyState("2", "P")
+    {
+      Sleep 50
+    }
+  }
 }
 return
 
 $3::
 if (色轮=0)
 {
-  Send {3 Down}
-  KeyWait, 3
-  Send {3 Up}
-  return
+  loop
+  {
+    Send {3 Down}
+    Sleep 50
+    Send {3 Up}
+    
+    if (A_Index=1)
+    {
+      Sleep 200
+    }
+    
+    if !GetKeyState("3", "P")
+    {
+      break
+    }
+    else if GetKeyState("3", "P")
+    {
+      Sleep 50
+    }
+  }
 }
 return
 
 $4::
 if (色轮=0)
 {
-  Send {4 Down}
-  KeyWait, 4
-  Send {4 Up}
-  return
+  loop
+  {
+    Send {4 Down}
+    Sleep 50
+    Send {4 Up}
+    
+    if (A_Index=1)
+    {
+      Sleep 200
+    }
+    
+    if !GetKeyState("4", "P")
+    {
+      break
+    }
+    else if GetKeyState("4", "P")
+    {
+      Sleep 50
+    }
+  }
 }
 return
 
@@ -2983,4 +3171,26 @@ if (调色盘笔刷样式>2)
 ; BlockInput, Off
 ; BlockInput, MouseMoveOff
 KeyWait, 4
+return
+
+!a::
+Send {Ctrl Down}
+Send {Shift Down}
+Sleep 50
+Send {Tab Down}
+Sleep 50
+Send {Tab Up}
+Send {Shift Up}
+Send {Ctrl Up}
+KeyWait, a
+return
+
+!d::
+Send {Ctrl Down}
+Sleep 50
+Send {Tab Down}
+Sleep 50
+Send {Tab Up}
+Send {Ctrl Up}
+KeyWait, d
 return
