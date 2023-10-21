@@ -55,7 +55,19 @@ Menu, Tray, Add, 退出软件, 退出软件 ;添加新的右键菜单
 延迟执行:=0
 面板自动展开:=0
 软件Class名:=0
-初次搜索:=1
+
+if (A_ScreenHeight<1440)
+{
+  屏幕高度:=1080
+}
+else if (A_ScreenHeight>=2160)
+{
+  屏幕高度:=2160
+}
+else
+{
+  屏幕高度:=1440
+}
 
 autostartLnk:=A_StartupCommon . "\HighEfficiencyColorWheelForCSPv2.lnk" ;开机启动文件的路径
 IfExist, % autostartLnk ;检查开机启动的文件是否存在
@@ -86,6 +98,15 @@ IfExist, %A_ScriptDir%\色轮设置.ini ;如果配置文件存在则读取
   IniRead, 色板2色相角度, 色轮设置.ini, 设置, 色板2色相角度
   IniRead, 色轮宽度W, 色轮设置.ini, 设置, 色轮宽度W
   IniRead, 色轮高度H, 色轮设置.ini, 设置, 色轮高度H
+  色轮目标边长:=Round(256/1080*屏幕高度)
+  调色盘按键Y:=Round(480/495*色轮高度H)
+  色轮方块XL边界:=Round(104/465*色轮宽度W)
+  色轮方块XR边界:=Round(360/465*色轮宽度W)
+  色轮方块YU边界:=Round(118/495*色轮高度H)
+  色轮方块YD边界:=Round(374/495*色轮高度H)
+  圆心坐标X:=Round(色轮宽度W/2)
+  圆心坐标Y:=Round(色轮宽度W/2+12/1080*屏幕高度)
+  圆的半径:=Round(色轮宽度W/2-10/1080*屏幕高度)
   IniRead, 全屏色轮位置X补偿, 色轮设置.ini, 设置, 全屏色轮位置X补偿
   IniRead, 全屏色轮位置Y补偿, 色轮设置.ini, 设置, 全屏色轮位置Y补偿
   IniRead, 色轮位置X补偿, 色轮设置.ini, 设置, 色轮位置X补偿
@@ -135,7 +156,7 @@ IfExist, %A_ScriptDir%\色轮设置.ini ;如果配置文件存在则读取
 }
 else
 {
-  色轮到笔刷距离:=200
+  色轮到笔刷距离:=Round(200/1080*屏幕高度)
   IniWrite, %色轮到笔刷距离%, 色轮设置.ini, 设置, 色轮到笔刷距离
   鼠标在色轮位置X1:=104
   IniWrite, %鼠标在色轮位置X1%, 色轮设置.ini, 设置, 鼠标在色轮位置X1
@@ -149,10 +170,19 @@ else
   IniWrite, %色板1色相角度%, 色轮设置.ini, 设置, 色板1色相角度
   色板2色相角度:=0
   IniWrite, %色板2色相角度%, 色轮设置.ini, 设置, 色板2色相角度
-  色轮宽度W:=Round(A_ScreenHeight*(465/1080))
-  色轮高度H:=Round(A_ScreenHeight*(495/1080))
+  色轮宽度W:=Round(屏幕高度*(465/1080))
+  色轮高度H:=Round(屏幕高度*(495/1080))
   IniWrite, %色轮宽度W%, 色轮设置.ini, 设置, 色轮宽度W
   IniWrite, %色轮高度H%, 色轮设置.ini, 设置, 色轮高度H
+  色轮目标边长:=Round(256/1080*屏幕高度)
+  调色盘按键Y:=Round(480/495*色轮高度H)
+  色轮方块XL边界:=Round(104/465*色轮宽度W)
+  色轮方块XR边界:=Round(360/465*色轮宽度W)
+  色轮方块YU边界:=Round(118/495*色轮高度H)
+  色轮方块YD边界:=Round(374/495*色轮高度H)
+  圆心坐标X:=Round(色轮宽度W/2)
+  圆心坐标Y:=Round(色轮宽度W/2+12/1080*屏幕高度)
+  圆的半径:=Round(色轮宽度W/2-10/1080*屏幕高度)
   全屏色轮位置X补偿:=0
   全屏色轮位置Y补偿:=0
   IniWrite, %全屏色轮位置X补偿%, 色轮设置.ini, 设置, 全屏色轮位置X补偿
@@ -164,7 +194,7 @@ else
   画布左上角X:=Round(A_ScreenWidth/8)
   画布左上角Y:=0
   画布右下角X:=A_ScreenWidth-Round(A_ScreenWidth/8)
-  画布右下角Y:=A_ScreenHeight
+  画布右下角Y:=屏幕高度
   IniWrite, %画布左上角X%, 色轮设置.ini, 设置, 画布左上角X
   IniWrite, %画布左上角Y%, 色轮设置.ini, 设置, 画布左上角Y
   IniWrite, %画布右下角X%, 色轮设置.ini, 设置, 画布右下角X
@@ -296,13 +326,13 @@ if (软件前台!=0x0)
   CoordMode, Mouse, Screen
   CoordMode, Pixel, Screen
   MouseGetPos, MX, MY, WinID
-  if (MY<=A_ScreenHeight/30) and (菜单隐藏=1)
+  if (MY<=屏幕高度/30) and (菜单隐藏=1)
   {
     Send {Shift Down}
     Sleep 100
     loop
     {
-      ImageSearch, , , 0, 0, A_ScreenWidth, A_ScreenHeight/10, *10 %A_ScriptDir%\隐藏菜单.png
+      ImageSearch, , , 0, 0, A_ScreenWidth, 屏幕高度/10, *10 %A_ScriptDir%\隐藏菜单.png
       ; ToolTip 显示%ErrorLevel%
       if (ErrorLevel=1) ;隐藏
       {
@@ -319,7 +349,7 @@ if (软件前台!=0x0)
         break
       }
     }
-    ImageSearch, , , 0, 0, A_ScreenWidth, A_ScreenHeight/10, *10 %A_ScriptDir%\隐藏工具栏.png
+    ImageSearch, , , 0, 0, A_ScreenWidth, 屏幕高度/10, *10 %A_ScriptDir%\隐藏工具栏.png
     if (ErrorLevel=1) ;隐藏
     {
       Send {F3 Down}
@@ -345,7 +375,7 @@ if (软件前台!=0x0)
           }
         }
       }
-      else if (MY>A_ScreenHeight/20)
+      else if (MY>屏幕高度/20)
       {
         break
       }
@@ -394,12 +424,12 @@ if (软件前台!=0x0)
     }
     延迟执行:=0
   }
-  else if (MY>A_ScreenHeight/20) and (菜单隐藏=0) and (延迟执行=0)
+  else if (MY>屏幕高度/20) and (菜单隐藏=0) and (延迟执行=0)
   {
     Send {Shift Down}
     loop
     {
-      ImageSearch, , , 0, 0, A_ScreenWidth, A_ScreenHeight/10, *10 %A_ScriptDir%\隐藏菜单.png
+      ImageSearch, , , 0, 0, A_ScreenWidth, 屏幕高度/10, *10 %A_ScriptDir%\隐藏菜单.png
       ; ToolTip 隐藏%ErrorLevel%
       if (ErrorLevel=0) ;显示
       {
@@ -413,7 +443,7 @@ if (软件前台!=0x0)
         break
       }
     }
-    ImageSearch, , , 0, 0, A_ScreenWidth, A_ScreenHeight/10, *10 %A_ScriptDir%\隐藏工具栏.png
+    ImageSearch, , , 0, 0, A_ScreenWidth, 屏幕高度/10, *10 %A_ScriptDir%\隐藏工具栏.png
     if (ErrorLevel=0) ;显示
     {
       Send {F3 Down}
@@ -425,26 +455,26 @@ if (软件前台!=0x0)
   }
   ; Hotkey, $Tab, On
   
-  if (面板展开=0) and (MY>A_ScreenHeight/20)
+  if (面板展开=0) and (MY>屏幕高度/20)
   {
     CoordMode, Pixel, Screen
-    ImageSearch, 隐藏面板XL1, , A_ScreenWidth/15, 0, A_ScreenWidth/2, A_ScreenHeight/10, *10 %A_ScriptDir%\全屏识别.png
+    ImageSearch, 隐藏面板XL1, , A_ScreenWidth/15, 0, A_ScreenWidth/2, 屏幕高度/10, *10 %A_ScriptDir%\全屏识别.png
     if (ErrorLevel=1)
     {
       隐藏面板XL1:=Round(A_ScreenWidth/15)
     }
     else if (ErrorLevel=0)
     {
-      隐藏面板XL1:=隐藏面板XL1+23
+      隐藏面板XL1:=隐藏面板XL1+Round(23/1080*屏幕高度)
     }
-    ImageSearch, 隐藏面板XL2, , A_ScreenWidth/15, 0, A_ScreenWidth/2, A_ScreenHeight/10, *10 %A_ScriptDir%\右箭头.png
+    ImageSearch, 隐藏面板XL2, , A_ScreenWidth/15, 0, A_ScreenWidth/2, 屏幕高度/10, *10 %A_ScriptDir%\右箭头.png
     if (ErrorLevel=1)
     {
       隐藏面板XL2:=Round(A_ScreenWidth/15)
     }
     else if (ErrorLevel=0)
     {
-      隐藏面板XL2:=隐藏面板XL2+20
+      隐藏面板XL2:=隐藏面板XL2+Round(20/1080*屏幕高度)
     }
     
     if (隐藏面板XL1<隐藏面板XL2)
@@ -456,23 +486,23 @@ if (软件前台!=0x0)
       隐藏面板XL:=Round(隐藏面板XL1)
     }
     
-    ImageSearch, 隐藏面板XR1, , A_ScreenWidth/2, 0, A_ScreenWidth-A_ScreenWidth/15, A_ScreenHeight/10, *10 %A_ScriptDir%\全屏识别.png
+    ImageSearch, 隐藏面板XR1, , A_ScreenWidth/2, 0, A_ScreenWidth-A_ScreenWidth/15, 屏幕高度/10, *10 %A_ScriptDir%\全屏识别.png
     if (ErrorLevel=1)
     {
       隐藏面板XR1:=Round(A_ScreenWidth-A_ScreenWidth/15)
     }
     else if (ErrorLevel=0)
     {
-      隐藏面板XR1:=隐藏面板XR1-18
+      隐藏面板XR1:=隐藏面板XR1-Round(18/1080*屏幕高度)
     }
-    ImageSearch, 隐藏面板XR2, , A_ScreenWidth/2, 0, A_ScreenWidth-A_ScreenWidth/15, A_ScreenHeight/10, *10 %A_ScriptDir%\左箭头.png
+    ImageSearch, 隐藏面板XR2, , A_ScreenWidth/2, 0, A_ScreenWidth-A_ScreenWidth/15, 屏幕高度/10, *10 %A_ScriptDir%\左箭头.png
     if (ErrorLevel=1)
     {
       隐藏面板XR2:=Round(A_ScreenWidth-A_ScreenWidth/15)
     }
     else if (ErrorLevel=0)
     {
-      隐藏面板XR2:=隐藏面板XR2-18
+      隐藏面板XR2:=隐藏面板XR2-Round(18/1080*屏幕高度)
     }
     
     if (隐藏面板XR1>隐藏面板XR2)
@@ -496,7 +526,7 @@ if (软件前台!=0x0)
         }
         else
         {
-          ImageSearch, , , 0, 0, A_ScreenWidth, A_ScreenHeight, *10 %A_ScriptDir%\全屏识别.png
+          ImageSearch, , , 0, 0, A_ScreenWidth, 屏幕高度, *10 %A_ScriptDir%\全屏识别.png
           if (ErrorLevel=1)
           {
             Send {Tab Down}
@@ -522,7 +552,7 @@ if (软件前台!=0x0)
         }
         else
         {
-          ImageSearch, , , A_ScreenWidth/20, 0, A_ScreenWidth-A_ScreenWidth/20, A_ScreenHeight/10, *10 %A_ScriptDir%\全屏识别.png
+          ImageSearch, , , A_ScreenWidth/20, 0, A_ScreenWidth-A_ScreenWidth/20, 屏幕高度/10, *10 %A_ScriptDir%\全屏识别.png
           if (ErrorLevel=0)
           {
             Send {Tab Down}
@@ -743,7 +773,7 @@ ToolTip
 return
 
 使用教程:
-MsgBox, , 德芙色轮, 黑钨重工出品 免费开源 请勿商用 侵权必究`n`n目前仅支持1080p屏幕 100`%缩放`nCSP v2版本 请使用HSV色轮`nCSP需要设置呼出色轮的快捷键`n设置的位置在`:文件`-快捷键设置`-主菜单`-窗口`-色環/色轮 色彩混合/混色`nPS需要设置呼出前景色拾色器的快捷键`n设置的位置在:工具`n请在数位板设置中关闭Windows Ink功能`n画布设置的意思是`:`n画布的多大范围内按下Tab才能呼出色轮`n如果取色环显示位置不准`n请打开色环矫正后使用上下左右箭头修正`n`nCtrl+Enter键 短按打开自动隐藏功能 长按关闭自动隐藏功能`n自动隐藏需要设置命令列的快捷键为Shift`+F3`n按住Tab键 或 鼠标中键 触发德芙色轮`nW 切换色板`nQ和E 或者 滚轮 控制色相慢速左旋和右旋`nA和D 控制色相快速左旋和右旋`n松开Tab 或 鼠标中键 完成取色`n`n按下S打开或关闭记忆模式`n每次打开色轮使用上次在色轮中取的色`n而不使用在画布上取的颜色`n当打开调色盘时`n重音符 清空调色盘`n数字1 短按撤回 长按还原`n数字2和数字3 控制笔刷大小`n数字4 切换笔刷样式`nAlt`+A`/D 切换上一个下一个画布`n`n双击空格 以亮度为基准黑白显示`n需要打开系统设置`-轻松使用`-颜色滤镜`-允许使用快捷键打开滤镜`n`n新后无法运行请删除ini文件后重新运行本软件`n`n更多免费教程尽在QQ群 1群763625227 2群643763519
+MsgBox, , 德芙色轮, 黑钨重工出品 免费开源 请勿商用 侵权必究`n`n目前仅支持1080p屏幕 100`%缩放`nCSP v2版本 请使用HSV色轮`nCSP需要设置呼出色轮的快捷键`n设置的位置在`:文件`-快捷键设置`-主菜单`-窗口`-色環/色轮 色彩混合/混色`nPS需要设置呼出前景色拾色器的快捷键`n设置的位置在:工具`n请在数位板设置中关闭Windows Ink功能`n画布设置的意思是`:`n画布的多大范围内按下Tab才能呼出色轮`n如果取色环显示位置不准`n请打开色环矫正后使用上下左右箭头修正`n`nCtrl`+Enter键 短按打开自动隐藏功能 长按关闭自动隐藏功能`n自动隐藏需要设置命令列的快捷键为Shift`+F3`n按住Tab键 或 鼠标中键 触发德芙色轮`nW 切换色板`nQ和E 或者 滚轮 控制色相慢速左旋和右旋`nA和D 控制色相快速左旋和右旋`n松开Tab 或 鼠标中键 完成取色`n`n按下S打开或关闭记忆模式`n每次打开色轮使用上次在色轮中取的色`n而不使用在画布上取的颜色`n当打开调色盘时`n重音符 清空调色盘`n数字1 短按撤回 长按还原`n数字2和数字3 控制笔刷大小`n数字4 切换笔刷样式`nAlt`+A`/D 切换上一个下一个画布`n`n双击空格 以亮度为基准黑白显示`n需要打开系统设置`-轻松使用`-颜色滤镜`-允许使用快捷键打开滤镜`n`n新后无法运行请删除ini文件后重新运行本软件`n`n更多免费教程尽在QQ群 1群763625227 2群643763519
 return
 
 软件更新:
@@ -872,13 +902,13 @@ if (色轮=1)
   {
     全屏色轮位置Y补偿:=全屏色轮位置Y补偿-1
     IniWrite, %全屏色轮位置Y补偿%, 色轮设置.ini, 设置, 全屏色轮位置Y补偿
-    WinMove 取色环, , 鼠标在屏幕位置X-61-移动画布距离+全屏色轮位置X补偿, 鼠标在屏幕位置Y-36+全屏色轮位置Y补偿
+    WinMove 取色环, , 鼠标在屏幕位置X-Round(61/1080*屏幕高度)-移动画布距离+全屏色轮位置X补偿, 鼠标在屏幕位置Y-Round(36/1080*屏幕高度)+全屏色轮位置Y补偿
   }
   else
   {
     色轮位置Y补偿:=色轮位置Y补偿-1
     IniWrite, %色轮位置Y补偿%, 色轮设置.ini, 设置, 色轮位置Y补偿
-    WinMove 取色环, , 鼠标在屏幕位置X-61-移动画布距离+色轮位置X补偿, 鼠标在屏幕位置Y-36+色轮位置Y补偿
+    WinMove 取色环, , 鼠标在屏幕位置X-Round(61/1080*屏幕高度)-移动画布距离+色轮位置X补偿, 鼠标在屏幕位置Y-Round(36/1080*屏幕高度)+色轮位置Y补偿
   }
 }
 return
@@ -890,13 +920,13 @@ if (色轮=1)
   {
     全屏色轮位置Y补偿:=全屏色轮位置Y补偿+1
     IniWrite, %全屏色轮位置Y补偿%, 色轮设置.ini, 设置, 全屏色轮位置Y补偿
-    WinMove 取色环, , 鼠标在屏幕位置X-61-移动画布距离+全屏色轮位置X补偿, 鼠标在屏幕位置Y-36+全屏色轮位置Y补偿
+    WinMove 取色环, , 鼠标在屏幕位置X-Round(61/1080*屏幕高度)-移动画布距离+全屏色轮位置X补偿, 鼠标在屏幕位置Y-Round(36/1080*屏幕高度)+全屏色轮位置Y补偿
   }
   else
   {
     色轮位置Y补偿:=色轮位置Y补偿+1
     IniWrite, %色轮位置Y补偿%, 色轮设置.ini, 设置, 色轮位置Y补偿
-    WinMove 取色环, , 鼠标在屏幕位置X-61-移动画布距离+色轮位置X补偿, 鼠标在屏幕位置Y-36+色轮位置Y补偿
+    WinMove 取色环, , 鼠标在屏幕位置X-Round(61/1080*屏幕高度)-移动画布距离+色轮位置X补偿, 鼠标在屏幕位置Y-Round(36/1080*屏幕高度)+色轮位置Y补偿
   }
 }
 return
@@ -908,13 +938,13 @@ if (色轮=1)
   {
     全屏色轮位置X补偿:=全屏色轮位置X补偿-1
     IniWrite, %全屏色轮位置X补偿%, 色轮设置.ini, 设置, 全屏色轮位置X补偿
-    WinMove 取色环, , 鼠标在屏幕位置X-61-移动画布距离+全屏色轮位置X补偿, 鼠标在屏幕位置Y-36+全屏色轮位置Y补偿
+    WinMove 取色环, , 鼠标在屏幕位置X-Round(61/1080*屏幕高度)-移动画布距离+全屏色轮位置X补偿, 鼠标在屏幕位置Y-Round(36/1080*屏幕高度)+全屏色轮位置Y补偿
   }
   else
   {
     色轮位置X补偿:=色轮位置X补偿-1
     IniWrite, %色轮位置X补偿%, 色轮设置.ini, 设置, 色轮位置X补偿
-    WinMove 取色环, , 鼠标在屏幕位置X-61-移动画布距离+色轮位置X补偿, 鼠标在屏幕位置Y-36+色轮位置Y补偿
+    WinMove 取色环, , 鼠标在屏幕位置X-Round(61/1080*屏幕高度)-移动画布距离+色轮位置X补偿, 鼠标在屏幕位置Y-Round(36/1080*屏幕高度)+色轮位置Y补偿
   }
 }
 return
@@ -926,13 +956,13 @@ if (色轮=1)
   {
     全屏色轮位置X补偿:=全屏色轮位置X补偿+1
     IniWrite, %全屏色轮位置X补偿%, 色轮设置.ini, 设置, 全屏色轮位置X补偿
-    WinMove 取色环, , 鼠标在屏幕位置X-61-移动画布距离+全屏色轮位置X补偿, 鼠标在屏幕位置Y-36+全屏色轮位置Y补偿
+    WinMove 取色环, , 鼠标在屏幕位置X-Round(61/1080*屏幕高度)-移动画布距离+全屏色轮位置X补偿, 鼠标在屏幕位置Y-Round(36/1080*屏幕高度)+全屏色轮位置Y补偿
   }
   else
   {
     色轮位置X补偿:=色轮位置X补偿+1
     IniWrite, %色轮位置X补偿%, 色轮设置.ini, 设置, 色轮位置X补偿
-    WinMove 取色环, , 鼠标在屏幕位置X-61-移动画布距离+色轮位置X补偿, 鼠标在屏幕位置Y-36+色轮位置Y补偿
+    WinMove 取色环, , 鼠标在屏幕位置X-Round(61/1080*屏幕高度)-移动画布距离+色轮位置X补偿, 鼠标在屏幕位置Y-Round(36/1080*屏幕高度)+色轮位置Y补偿
   }
 }
 return
@@ -970,7 +1000,7 @@ if (鼠标在屏幕位置X<画布左上角X) or (鼠标在屏幕位置X>画布�
   KeyWait, Tab
   Send {Tab Up}
   Sleep 50
-  ImageSearch, , , 0, 0, A_ScreenWidth, A_ScreenHeight, *10 %A_ScriptDir%\全屏识别.png
+  ImageSearch, , , 0, 0, A_ScreenWidth, 屏幕高度, *10 %A_ScriptDir%\全屏识别.png
   if (ErrorLevel=0) ;是全屏
   {
     面板展开:=1
@@ -990,7 +1020,7 @@ BlockInput, MouseMove
 CoordMode, Pixel, Screen
 
  ;识别是否全屏
-ImageSearch, , , 0, 0, A_ScreenWidth, A_ScreenHeight, *10 %A_ScriptDir%\全屏识别.png
+ImageSearch, , , 0, 0, A_ScreenWidth, 屏幕高度, *10 %A_ScriptDir%\全屏识别.png
 if (ErrorLevel=0) ;是全屏
 {
   Send {Tab} ;进入全屏
@@ -1219,11 +1249,11 @@ Gui, 取色环:Add, Picture, X25 Y0 BackgroundTrans, %A_ScriptDir%\取色环.png
 WinSet, TransColor, cccccc, 取色环 ;透明化
 if (全屏=1)
 {
-  WinMove 取色环, , 鼠标在屏幕位置X-61-移动画布距离+全屏色轮位置X补偿, 鼠标在屏幕位置Y-36+全屏色轮位置Y补偿
+  WinMove 取色环, , 鼠标在屏幕位置X-Round(61/1080*屏幕高度)-移动画布距离+全屏色轮位置X补偿, 鼠标在屏幕位置Y-Round(36/1080*屏幕高度)+全屏色轮位置Y补偿
 }
 else ;if (全屏=0)
 {
-  WinMove 取色环, , 鼠标在屏幕位置X-61-移动画布距离+色轮位置X补偿, 鼠标在屏幕位置Y-36+色轮位置Y补偿
+  WinMove 取色环, , 鼠标在屏幕位置X-Round(61/1080*屏幕高度)-移动画布距离+色轮位置X补偿, 鼠标在屏幕位置Y-Round(36/1080*屏幕高度)+色轮位置Y补偿
 }
 ; Gui, 取色环:Color, 0xffffff ;色环颜色
 
@@ -1239,26 +1269,26 @@ else
   WinGetPos, 色轮在屏幕位置X, 色轮在屏幕位置Y, , , 色環
 }
 CoordMode Pixel, Window
-PixelSearch, 色板位置X, , 0, 467, 126, 469, 0x7D8EB3, 10, Fast RGB
-if (色板位置X<45)
+PixelSearch, 色板位置X, , 0, Round(467/1080*屏幕高度), Round(126/1080*屏幕高度), Round(469/1080*屏幕高度), 0x7D8EB3, 10, Fast RGB
+if (色板位置X<Round(45/1080*屏幕高度))
 {
-  取色位置X:=25
+  取色位置X:=Round(25/1080*屏幕高度)
   色板位置:=1
 }
-else if (色板位置X>45) and (色板位置X<85)
+else if (色板位置X>Round(45/1080*屏幕高度)) and (色板位置X<Round(85/1080*屏幕高度))
 {
-  取色位置X:=65
+  取色位置X:=Round(65/1080*屏幕高度)
   色板位置:=2
 }
 else
 {
   if (色板位置=1)
   {
-    取色位置X:=25
+    取色位置X:=Round(25/1080*屏幕高度)
   }
   else (色板位置=2)
   {
-    取色位置X:=65
+    取色位置X:=Round(65/1080*屏幕高度)
   }
 }
 ; ToolTip %色板位置% %色板位置X%
@@ -1273,9 +1303,6 @@ if (记忆模式=1)
   BlockInput MouseMove
   CoordMode, Mouse, Screen
   MouseGetPos, 鼠标在屏幕位置记忆X, 鼠标在屏幕位置记忆Y
-  圆心坐标X:=Round(色轮在屏幕位置X+色轮宽度W/2)
-  圆心坐标Y:=Round(色轮在屏幕位置Y+色轮宽度W/2)+13
-  圆的半径:=色轮宽度W/2-10
   CoordMode, Mouse, Screen
   if (色板位置=1)
   {
@@ -1380,7 +1407,7 @@ loop
         CoordMode, Mouse, Window
         MouseGetPos, 鼠标在拾色器位置X, 鼠标在拾色器位置Y
         WinGetPos, 拾色器窗口X, 拾色器窗口Y
-        if (鼠标在拾色器位置Y<=35)
+        if (鼠标在拾色器位置Y<=Round(35/1080*屏幕高度))
         {
           KeyWait, LButton
           Send {Ctrl Down}
@@ -1392,11 +1419,11 @@ loop
           Send {Shift Up}
           Send {Ctrl Up}
         }
-        else if (鼠标在拾色器位置Y>=35) and (鼠标在拾色器位置Y<=75) and (鼠标在拾色器位置X>=425) ;确定
+        else if (鼠标在拾色器位置Y>=Round(35/1080*屏幕高度)) and (鼠标在拾色器位置Y<=Round(75/1080*屏幕高度)) and (鼠标在拾色器位置X>=Round(425/1080*屏幕高度)) ;确定
         {
           KeyWait, LButton
           CoordMode, Pixel, Screen
-          PixelGetColor, 取色颜色, 拾色器窗口X+350, 拾色器窗口Y+95, RGB
+          PixelGetColor, 取色颜色, 拾色器窗口X+Round(351/1080*屏幕高度), 拾色器窗口Y+Round(95/1080*屏幕高度), RGB
           Gui, 取色环:Color, %取色颜色% ;色环颜色
           loop 50
           {
@@ -1415,7 +1442,7 @@ loop
           loop
           {
             CoordMode, Pixel, Screen
-            PixelGetColor, 取色颜色, 拾色器窗口X+350, 拾色器窗口Y+95, RGB
+            PixelGetColor, 取色颜色, 拾色器窗口X+Round(350/1080*屏幕高度), 拾色器窗口Y+Round(95/1080*屏幕高度), RGB
             Gui, 取色环:Color, %取色颜色% ;色环颜色
             ; ToolTip, 鼠标在拾色器位置X%鼠标在拾色器位置X% 鼠标在拾色器位置Y%鼠标在拾色器位置Y% 取色颜色%取色颜色%
             if !GetKeyState("LButton", "P")
@@ -1451,7 +1478,7 @@ loop
       在PS取色:=1
       loop
       {
-        PixelGetColor, 取色颜色, 色轮位置X+20, 色轮位置Y+色轮高度H+62, RGB
+        PixelGetColor, 取色颜色, 色轮位置X+Round(20/1080*屏幕高度), 色轮位置Y+色轮高度H+Round(62/1080*屏幕高度), RGB
         ; 旧在PS取色:=取色颜色
         Gui, 取色环:Color, %取色颜色% ;色环颜色
         if !GetKeyState("LButton", "P")
@@ -1465,11 +1492,11 @@ loop
             WinActivate, ahk_class PSFloatC
             WinGetPos, 拾色器窗口X, 拾色器窗口Y
             
-            if (拾色器窗口X!=色轮位置X+40) or (拾色器窗口Y!=色轮位置Y+色轮高度H)
+            if (拾色器窗口X!=色轮位置X+Round(40/1080*屏幕高度)) or (拾色器窗口Y!=色轮位置Y+色轮高度H)
             {
-              MouseMove, 拾色器窗口X+15, 拾色器窗口Y+5, 0
+              MouseMove, 拾色器窗口X+Round(15/1080*屏幕高度), 拾色器窗口Y+Round(5/1080*屏幕高度), 0
               Send {LButton Down}
-              MouseMove, 色轮位置X+55, 色轮位置Y+色轮高度H+5, 0
+              MouseMove, 色轮位置X+Round(55/1080*屏幕高度), 色轮位置Y+色轮高度H+Round(5/1080*屏幕高度), 0
               Sleep 10
               Send {LButton Up}
             }
@@ -1509,7 +1536,7 @@ loop
       }
     }
   }
-  else if (调色盘检测X>色轮位置X+(色轮宽度W-256)/2+256+20) and (调色盘!=1) and (呼出调色盘!=1)
+  else if (调色盘检测X>色轮位置X+(色轮宽度W-色轮目标边长)/2+色轮目标边长+Round(20/1080*屏幕高度)) and (调色盘!=1) and (呼出调色盘!=1)
   {
     if (手动取色=0)
     {
@@ -1598,11 +1625,11 @@ loop
   {
     if (WinExist("ahk_class PSFloatC")!=0x0) ;""内填窗口名称
     {
-      PixelGetColor, 取色颜色, 拾色器窗口X+350, 拾色器窗口Y+95, RGB
+      PixelGetColor, 取色颜色, 拾色器窗口X+Round(350/1080*屏幕高度), 拾色器窗口Y+Round(95/1080*屏幕高度), RGB
     }
     else
     {
-      PixelGetColor, 取色颜色, 色轮位置X+20, 色轮位置Y+色轮高度H+62, RGB
+      PixelGetColor, 取色颜色, 色轮位置X+Round(20/1080*屏幕高度), 色轮位置Y+色轮高度H+Round(62/1080*屏幕高度), RGB
     }
   }
   Gui, 取色环:Color, %取色颜色% ;色环颜色
@@ -1656,21 +1683,21 @@ if (色板位置=1)
 {
   鼠标在色轮位置X1:=鼠标在色轮位置X
   鼠标在色轮位置Y1:=鼠标在色轮位置Y
-  if (鼠标在色轮位置X1<104)
+  if (鼠标在色轮位置X1<色轮方块XL边界)
   {
-    鼠标在色轮位置X1:=104
+    鼠标在色轮位置X1:=色轮方块XL边界
   }
-  else if (鼠标在色轮位置X1>360)
+  else if (鼠标在色轮位置X1>色轮方块XR边界)
   {
-    鼠标在色轮位置X1:=360
+    鼠标在色轮位置X1:=色轮方块XR边界
   }
-  if (鼠标在色轮位置Y1<118)
+  if (鼠标在色轮位置Y1<色轮方块YU边界)
   {
-    鼠标在色轮位置Y1:=118
+    鼠标在色轮位置Y1:=色轮方块YU边界
   }
-  else if (鼠标在色轮位置Y1>374)
+  else if (鼠标在色轮位置Y1>色轮方块YD边界)
   {
-    鼠标在色轮位置Y1:=374
+    鼠标在色轮位置Y1:=色轮方块YD边界
   }
   IniWrite, %鼠标在色轮位置X1%, 色轮设置.ini, 设置, 鼠标在色轮位置X1
   IniWrite, %鼠标在色轮位置Y1%, 色轮设置.ini, 设置, 鼠标在色轮位置Y1
@@ -1681,21 +1708,21 @@ else if (色板位置=2)
 {
   鼠标在色轮位置X2:=鼠标在色轮位置X
   鼠标在色轮位置Y2:=鼠标在色轮位置Y
-  if (鼠标在色轮位置X2<104)
+  if (鼠标在色轮位置X1<色轮方块XL边界)
   {
-    鼠标在色轮位置X2:=104
+    鼠标在色轮位置X1:=色轮方块XL边界
   }
-  else if (鼠标在色轮位置X2>360)
+  else if (鼠标在色轮位置X1>色轮方块XR边界)
   {
-    鼠标在色轮位置X2:=360
+    鼠标在色轮位置X1:=色轮方块XR边界
   }
-  if (鼠标在色轮位置Y2<118)
+  if (鼠标在色轮位置Y1<色轮方块YU边界)
   {
-    鼠标在色轮位置Y2:=118
+    鼠标在色轮位置Y1:=色轮方块YU边界
   }
-  else if (鼠标在色轮位置Y2>374)
+  else if (鼠标在色轮位置Y1>色轮方块YD边界)
   {
-    鼠标在色轮位置Y2:=374
+    鼠标在色轮位置Y1:=色轮方块YD边界
   }
   IniWrite, %鼠标在色轮位置X2%, 色轮设置.ini, 设置, 鼠标在色轮位置X2
   IniWrite, %鼠标在色轮位置Y2%, 色轮设置.ini, 设置, 鼠标在色轮位置Y2
@@ -1822,9 +1849,6 @@ if (色板位置=1)
     WinActivate, 色環
   }
   后台.点击左键(色轮窗口ID, 鼠标在色轮位置X1, 鼠标在色轮位置Y1)
-  圆心坐标X:=Round(色轮宽度W/2)
-  圆心坐标Y:=Round(色轮宽度W/2)+12
-  圆的半径:=色轮宽度W/2-10
   gosub 色相偏移
   ; ToolTip %色相角度% %绘制坐标X% %绘制坐标Y%
   BlockInput, MouseMoveOff
@@ -1853,9 +1877,6 @@ else if (色板位置=2)
     WinActivate, 色環
   }
   后台.点击左键(色轮窗口ID, 鼠标在色轮位置X2, 鼠标在色轮位置Y2)
-  圆心坐标X:=Round(色轮宽度W/2)
-  圆心坐标Y:=Round(色轮宽度W/2)+12
-  圆的半径:=色轮宽度W/2-10
   gosub 色相偏移
   ; ToolTip %色相角度% %绘制坐标X% %绘制坐标Y%
   BlockInput, MouseMoveOff
@@ -1912,8 +1933,8 @@ if (色相角度<0)
 {
   色相角度:=6.283+色相角度
 }
-鼠标在色轮位置X:=104+Round(s*256)
-鼠标在色轮位置Y:=118+256-Round(v*256)
+鼠标在色轮位置X:=色轮方块XL边界+Round(s*色轮目标边长)
+鼠标在色轮位置Y:=色轮方块YU边界+色轮目标边长-Round(v*色轮目标边长)
 return
 
 切换色板:
@@ -1927,21 +1948,21 @@ if (色板位置=1) ;记录鼠标位置并限制在方框内
 {
   鼠标在色轮位置X1:=鼠标在色轮位置X
   鼠标在色轮位置Y1:=鼠标在色轮位置Y
-  if (鼠标在色轮位置X1<104)
+  if (鼠标在色轮位置X1<色轮方块XL边界)
   {
-    鼠标在色轮位置X1:=104
+    鼠标在色轮位置X1:=色轮方块XL边界
   }
-  else if (鼠标在色轮位置X1>360)
+  else if (鼠标在色轮位置X1>色轮方块XR边界)
   {
-    鼠标在色轮位置X1:=360
+    鼠标在色轮位置X1:=色轮方块XR边界
   }
-  if (鼠标在色轮位置Y1<118)
+  if (鼠标在色轮位置Y1<色轮方块YU边界)
   {
-    鼠标在色轮位置Y1:=118
+    鼠标在色轮位置Y1:=色轮方块YU边界
   }
-  else if (鼠标在色轮位置Y1>374)
+  else if (鼠标在色轮位置Y1>色轮方块YD边界)
   {
-    鼠标在色轮位置Y1:=374
+    鼠标在色轮位置Y1:=色轮方块YD边界
   }
   IniWrite, %鼠标在色轮位置X1%, 色轮设置.ini, 设置, 鼠标在色轮位置X1
   IniWrite, %鼠标在色轮位置Y1%, 色轮设置.ini, 设置, 鼠标在色轮位置Y1
@@ -1950,21 +1971,21 @@ else if (色板位置=2)
 {
   鼠标在色轮位置X2:=鼠标在色轮位置X
   鼠标在色轮位置Y2:=鼠标在色轮位置Y
-  if (鼠标在色轮位置X2<104)
+  if (鼠标在色轮位置X1<色轮方块XL边界)
   {
-    鼠标在色轮位置X2:=104
+    鼠标在色轮位置X1:=色轮方块XL边界
   }
-  else if (鼠标在色轮位置X2>360)
+  else if (鼠标在色轮位置X1>色轮方块XR边界)
   {
-    鼠标在色轮位置X2:=360
+    鼠标在色轮位置X1:=色轮方块XR边界
   }
-  if (鼠标在色轮位置Y2<118)
+  if (鼠标在色轮位置Y1<色轮方块YU边界)
   {
-    鼠标在色轮位置Y2:=118
+    鼠标在色轮位置Y1:=色轮方块YU边界
   }
-  else if (鼠标在色轮位置Y2>374)
+  else if (鼠标在色轮位置Y1>色轮方块YD边界)
   {
-    鼠标在色轮位置Y2:=374
+    鼠标在色轮位置Y1:=色轮方块YD边界
   }
   IniWrite, %鼠标在色轮位置X2%, 色轮设置.ini, 设置, 鼠标在色轮位置X2
   IniWrite, %鼠标在色轮位置Y2%, 色轮设置.ini, 设置, 鼠标在色轮位置Y2
@@ -1984,8 +2005,8 @@ else if (简体中文!=1) and (调色盘=0)
 if (色板位置=1)
 {
   色板位置:=2
-  取色位置X:=65
-  后台.点击左键(色轮窗口ID, 65, 取色位置Y)
+  取色位置X:=Round(65/1080*屏幕高度)
+  后台.点击左键(色轮窗口ID, 取色位置X, 取色位置Y)
   色轮位置X:=Round(鼠标在屏幕位置X-鼠标在色轮位置X2)
   色轮位置Y:=Round(鼠标在屏幕位置Y-鼠标在色轮位置Y2)
   if (简体中文=1) and (调色盘=0)
@@ -2001,8 +2022,8 @@ if (色板位置=1)
 else
 {
   色板位置:=1
-  取色位置X:=25
-  后台.点击左键(色轮窗口ID, 25, 取色位置Y)
+  取色位置X:=Round(25/1080*屏幕高度)
+  后台.点击左键(色轮窗口ID, 取色位置X, 取色位置Y)
   色轮位置X:=Round(鼠标在屏幕位置X-鼠标在色轮位置X1)
   色轮位置Y:=Round(鼠标在屏幕位置Y-鼠标在色轮位置Y1)
   if (简体中文=1) and (调色盘=0)
@@ -2235,9 +2256,9 @@ if (WinExist("ahk_class PSFloatC")!=0x0) ;""内填窗口名称
 if (呼出PS取色=1)
 {
   Sleep 100
-  if (色轮位置Y>A_ScreenHeight-色轮高度H*2)
+  if (色轮位置Y>屏幕高度-色轮高度H*2)
   {
-    色轮位置Y:=A_ScreenHeight-色轮高度H*2
+    色轮位置Y:=屏幕高度-色轮高度H*2
   }
   if (简体中文=1)
   {
@@ -2276,9 +2297,9 @@ if (呼出PS取色=1)
           CoordMode, Mouse, Screen
           WinActivate, ahk_class OWL.Dock
           BlockInput, On
-          MouseMove, LAB窗口X+5, LAB窗口Y+5
+          MouseMove, LAB窗口X+Round(5/1080*屏幕高度), LAB窗口Y+Round(5/1080*屏幕高度)
           Send {LButton Down}
-          MouseMove, 色轮位置X+5, LAB窗口目标位置Y+5, 0
+          MouseMove, 色轮位置X+Round(5/1080*屏幕高度), LAB窗口目标位置Y+Round(5/1080*屏幕高度), 0
           Sleep 10
           Send {LButton Up}
           Sleep 50
@@ -2288,7 +2309,7 @@ if (呼出PS取色=1)
           CoordMode, Mouse, Screen
           WinActivate, ahk_class OWL.Dock
           BlockInput, On
-          MouseMove, LAB窗口X+LAB窗口W-5, LAB窗口Y+LAB窗口H-5, 
+          MouseMove, LAB窗口X+LAB窗口W-Round(5/1080*屏幕高度), LAB窗口Y+LAB窗口H-Round(5/1080*屏幕高度), 
           Send {LButton Down}
           MouseMove, LAB窗口目标宽度W-LAB窗口W, 色轮高度H-LAB窗口H, 0, R
           Sleep 10
@@ -2364,11 +2385,11 @@ if (呼出PS取色=1)
         WinActivate, ahk_class PSFloatC
       }
     }
-    if (拾色器窗口X!=色轮位置X+40) or (拾色器窗口Y!=色轮位置Y+色轮高度H)
+    if (拾色器窗口X!=色轮位置X+Round(40/1080*屏幕高度)) or (拾色器窗口Y!=色轮位置Y+色轮高度H)
     {
-      MouseMove, 拾色器窗口X+15, 拾色器窗口Y+5, 0
+      MouseMove, 拾色器窗口X+Round(15/1080*屏幕高度), 拾色器窗口Y+Round(5/1080*屏幕高度), 0
       Send {LButton Down}
-      MouseMove, 色轮位置X+55, 色轮位置Y+色轮高度H+5, 0
+      MouseMove, 色轮位置X+Round(55/1080*屏幕高度), 色轮位置Y+色轮高度H+Round(5/1080*屏幕高度), 0
       Sleep 10
       Send {LButton Up}
     }
@@ -2681,7 +2702,7 @@ if (A_TickCount-自动隐藏<=500)
     }
     loop 50
     {
-      ToolTip, 已打开自动隐藏功能
+      ToolTip, 已打开自动隐藏功能 %软件Class名%
       Sleep 30
     }
     ToolTip
@@ -2727,9 +2748,6 @@ else
 {
   WinGetPos, 色轮在屏幕位置X, 色轮在屏幕位置Y, , , 色環
 }
-圆心坐标X:=Round(色轮宽度W/2)
-圆心坐标Y:=Round(色轮宽度W/2)+12
-圆的半径:=色轮宽度W/2-10
 CoordMode, Mouse, Screen
 loop
 {
@@ -2811,9 +2829,6 @@ else
 {
   WinGetPos, 色轮在屏幕位置X, 色轮在屏幕位置Y, , , 色環
 }
-圆心坐标X:=Round(色轮宽度W/2)
-圆心坐标Y:=Round(色轮宽度W/2)+12
-圆的半径:=色轮宽度W/2-10
 CoordMode, Mouse, Screen
 loop
 {
@@ -2882,9 +2897,6 @@ else
 {
   WinGetPos, 色轮在屏幕位置X, 色轮在屏幕位置Y, , , 色環
 }
-圆心坐标X:=Round(色轮宽度W/2)
-圆心坐标Y:=Round(色轮宽度W/2)+12
-圆的半径:=色轮宽度W/2-10
 CoordMode, Mouse, Screen
 loop
 {
@@ -2953,9 +2965,6 @@ else
 {
   WinGetPos, 色轮在屏幕位置X, 色轮在屏幕位置Y, , , 色環
 }
-圆心坐标X:=Round(色轮宽度W/2)
-圆心坐标Y:=Round(色轮宽度W/2)+12
-圆的半径:=色轮宽度W/2-10
 CoordMode, Mouse, Screen
 loop
 {
@@ -3054,7 +3063,8 @@ else if (色相角度>=4.71225) and (色相角度<6.283)
 return
 
 清除调色盘:
-后台.点击左键(调色盘窗口ID, 255, 480)
+清除调色盘:=Round(255/1080*屏幕高度)
+后台.点击左键(调色盘窗口ID, 255, 调色盘按键Y)
 ; CoordMode, Mouse, Screen
 ; MouseGetPos, 鼠标在调色盘位置X, 鼠标在调色盘位置Y
 ; BlockInput, On
@@ -3077,7 +3087,8 @@ loop
   }
   else if (记录时间>350) ;还原
   {
-    后台.点击左键(调色盘窗口ID, 295, 480)
+    调色盘还原:=Round(295/1080*屏幕高度)
+    后台.点击左键(调色盘窗口ID, 调色盘还原, 调色盘按键Y)
     ; CoordMode, Mouse, Screen
     ; MouseGetPos, 鼠标在调色盘位置X, 鼠标在调色盘位置Y
     ; BlockInput, On
@@ -3092,7 +3103,8 @@ loop
 }
 if (记录时间<=350) ;撤回
 {
-  后台.点击左键(调色盘窗口ID, 275, 480)
+  调色盘撤回:=Round(275/1080*屏幕高度)
+  后台.点击左键(调色盘窗口ID, 调色盘撤回, 调色盘按键Y)
   ; CoordMode, Mouse, Screen
   ; MouseGetPos, 鼠标在调色盘位置X, 鼠标在调色盘位置Y
   ; BlockInput, On
@@ -3114,8 +3126,8 @@ if (调色盘笔刷大小<0)
 }
 if (调色盘笔刷大小!=旧调色盘笔刷大小)
 {
-  调色盘笔刷变小:=323+20*调色盘笔刷大小
-  后台.点击左键(调色盘窗口ID, 调色盘笔刷变小, 480)
+  调色盘笔刷变小:=Round(323/1080*屏幕高度)+Round(20/1080*屏幕高度)*调色盘笔刷大小
+  后台.点击左键(调色盘窗口ID, 调色盘笔刷变小, 调色盘按键Y)
   ; CoordMode, Mouse, Screen
   ; MouseGetPos, 鼠标在调色盘位置X, 鼠标在调色盘位置Y
   ; BlockInput, On
@@ -3138,8 +3150,8 @@ if (调色盘笔刷大小>2)
 }
 if (调色盘笔刷大小!=旧调色盘笔刷大小)
 {
-  调色盘笔刷变大:=323+20*调色盘笔刷大小
-  后台.点击左键(调色盘窗口ID, 调色盘笔刷变大, 480)
+  调色盘笔刷变大:=Round(323/1080*屏幕高度)+Round(20/1080*屏幕高度)*调色盘笔刷大小
+  后台.点击左键(调色盘窗口ID, 调色盘笔刷变大, 调色盘按键Y)
   ; CoordMode, Mouse, Screen
   ; MouseGetPos, 鼠标在调色盘位置X, 鼠标在调色盘位置Y
   ; BlockInput, On
@@ -3159,8 +3171,8 @@ if (调色盘笔刷样式>2)
 {
   调色盘笔刷样式:=0
 }
-切换调色盘笔刷样式:=390+20*调色盘笔刷样式
-后台.点击左键(调色盘窗口ID, 切换调色盘笔刷样式, 480)
+切换调色盘笔刷样式:=Round(390/1080*屏幕高度)+Round(20/1080*屏幕高度)*调色盘笔刷样式
+后台.点击左键(调色盘窗口ID, 切换调色盘笔刷样式, 调色盘按键Y)
 ; CoordMode, Mouse, Screen
 ; MouseGetPos, 鼠标在调色盘位置X, 鼠标在调色盘位置Y
 ; BlockInput, On
