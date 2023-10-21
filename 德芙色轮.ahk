@@ -774,7 +774,7 @@ ToolTip
 return
 
 使用教程:
-MsgBox, , 德芙色轮, 黑钨重工出品 免费开源 请勿商用 侵权必究`n`n目前仅支持1080p屏幕 100`%缩放`nCSP v2版本 请使用HSV色轮`nCSP需要设置呼出色轮的快捷键`n设置的位置在`:文件`-快捷键设置`-主菜单`-窗口`-色環/色轮 色彩混合/混色`nPS需要设置呼出前景色拾色器的快捷键`n设置的位置在:工具`n请在数位板设置中关闭Windows Ink功能`n画布设置的意思是`:`n画布的多大范围内按下Tab才能呼出色轮`n如果取色环显示位置不准`n请打开色环矫正后使用上下左右箭头修正`n`nCtrl`+Enter键 短按打开自动隐藏功能 长按关闭自动隐藏功能`n自动隐藏需要设置命令列的快捷键为Shift`+F3`n按住Tab键 或 鼠标中键 触发德芙色轮`nW 切换色板`nQ和E 或者 滚轮 控制色相慢速左旋和右旋`nA和D 控制色相快速左旋和右旋`n松开Tab 或 鼠标中键 完成取色`n`n按下S打开或关闭记忆模式`n每次打开色轮使用上次在色轮中取的色`n而不使用在画布上取的颜色`n当打开调色盘时`n重音符 清空调色盘`n数字1 短按撤回 长按还原`n数字2和数字3 控制笔刷大小`n数字4 切换笔刷样式`nAlt`+A`/D 切换上一个下一个画布`n`n双击空格 以亮度为基准黑白显示`n需要打开系统设置`-轻松使用`-颜色滤镜`-允许使用快捷键打开滤镜`n`n新后无法运行请删除ini文件后重新运行本软件`n`n更多免费教程尽在QQ群 1群763625227 2群643763519
+MsgBox, , 德芙色轮, 黑钨重工出品 免费开源 请勿商用 侵权必究`n更多免费软件教程尽在QQ群 1群763625227 2群643763519`n`n默认使用的是1080P屏幕 100`%缩放的设置`n如果是其他分辨率请自己设置或导入设置包`n`nCSP需要设置的内容`:`n请使用HSV色彩空间 在色轮左上角三条横线处点击即可设置`n画布设置的意思是 画布的多大范围内按下Tab或者中键才能呼出色轮`n呼出色轮的快捷键`n设置的位置在 文件`-快捷键设置`-主菜单`-窗口`-色環/色轮`n呼出调色盘的快捷键`n设置的位置在 文件`-快捷键设置`-主菜单`-窗口`-色彩混合/混色`n自动隐藏需要设置命令列的快捷键为Shift`+F3`nCtrl`+Enter键 短按打开自动隐藏功能 长按关闭自动隐藏功能`n`nPS需要设置的内容`:`n呼出前景色拾色器的快捷键为N`n设置的位置在 工具`-前景色拾色器`n`n数位板相关设置`:`n数位板属性中 关闭Windows Ink功能`nCSP环境设置中 绘图板`-要使用的绘图板服务`-Wintab`n`n按住Tab键 或 鼠标中键 触发德芙色轮`n如果取色环显示位置不准 请打开色环矫正后 使用上下左右箭头修正`nW 切换色板`nQ和E 或者 滚轮 控制色相慢速左旋和右旋`nA和D 控制色相快速左旋和右旋`nS 打开或关闭记忆模式`n每次打开色轮使用上次在色轮中取的色而不使用在画布上取的颜色`n松开Tab 或 鼠标中键 完成取色`n`n色轮打开后右移动即可打开调色盘`n当打开调色盘时使用以下快捷键操作`n重音符波浪号 清空调色盘`n数字1 短按撤回 长按还原`n数字2 和 数字3 控制笔刷大小`n数字4 切换笔刷样式`n`n其他功能`:`nAlt`+A`/D 切换上一个下一个画布`n以亮度为基准黑白显示需要系统设置`-轻松使用`-颜色滤镜`-允许使用快捷键打开滤镜`n双击空格 在亮度基准显示和正常显示之间切换`n`n更新后无法运行请删除ini文件后重新运行本软件`n如果仍然使用不了请私聊我付费远程调试服务
 return
 
 视频教程:
@@ -3191,23 +3191,49 @@ KeyWait, 4
 return
 
 !a::
-Send {Ctrl Down}
-Send {Shift Down}
-Sleep 50
-Send {Tab Down}
-Sleep 50
-Send {Tab Up}
-Send {Shift Up}
-Send {Ctrl Up}
-KeyWait, a
+if (色轮=0)
+{
+  Send {Ctrl Down}
+  Send {Shift Down}
+  Sleep 50
+  Send {Tab Down}
+  Sleep 50
+  Send {Tab Up}
+  Send {Shift Up}
+  Send {Ctrl Up}
+  KeyWait, a
+}
+else
+{
+  Send {Alt Down}
+  Sleep 50
+  Send {a Down}
+  Sleep 50
+  Send {a Up}
+  Send {Alt Up}
+  KeyWait, a
+}
 return
 
 !d::
-Send {Ctrl Down}
-Sleep 50
-Send {Tab Down}
-Sleep 50
-Send {Tab Up}
-Send {Ctrl Up}
-KeyWait, d
+if (色轮=0)
+{
+  Send {Ctrl Down}
+  Sleep 50
+  Send {Tab Down}
+  Sleep 50
+  Send {Tab Up}
+  Send {Ctrl Up}
+  KeyWait, d
+}
+else
+{
+  Send {Alt Down}
+  Sleep 50
+  Send {d Down}
+  Sleep 50
+  Send {d Up}
+  Send {Alt Up}
+  KeyWait, d
+}
 return
