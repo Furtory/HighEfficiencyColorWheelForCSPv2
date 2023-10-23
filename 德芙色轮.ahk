@@ -38,6 +38,7 @@ Menu, Tray, Add, 快捷设置, 快捷设置 ;添加新的右键菜单
 Menu, Tray, Add, 色环矫正, 色环矫正 ;添加新的右键菜单
 Menu, Tray, Add, 重置设置, 初始设置 ;添加新的右键菜单
 Menu, Tray, Add
+Menu, Tray, Add, 中键呼出, 中键呼出 ;添加新的右键菜单
 Menu, Tray, Add, 简体中文, 语言设置 ;添加新的右键菜单
 Menu, Tray, Add, 记忆模式, 记忆模式 ;添加新的右键菜单
 Menu, Tray, Add, 开机自启, 开机自启 ;添加新的右键菜单
@@ -154,6 +155,29 @@ IfExist, %A_ScriptDir%\色轮设置.ini ;如果配置文件存在则读取
     Menu, Tray, Check, 记忆模式 ;右键菜单打勾
   }
   IniRead, 初始设置, 色轮设置.ini, 设置, 初始设置
+  IniRead, 中键呼出, 色轮设置.ini, 设置, 中键呼出
+  Hotkey, MButton, 中键
+  if (中键呼出=1)
+  {
+    Menu, Tray, Check, 中键呼出 ;右键菜单打勾
+    IniWrite, %中键呼出%, 色轮设置.ini, 设置, 中键呼出
+    Hotkey, MButton, On
+  }
+  else
+  {
+    Menu, Tray, UnCheck, 中键呼出 ;右键菜单不打勾
+    IniWrite, %中键呼出%, 色轮设置.ini, 设置, 中键呼出
+    Hotkey, MButton, Off
+  }
+  
+  Hotkey, Up, 上
+  Hotkey, Up, Off
+  Hotkey, Down, 下
+  Hotkey, Down, Off
+  Hotkey, Left, 左
+  Hotkey, Left, Off
+  Hotkey, Right, 右
+  Hotkey, Right, Off
 }
 else
 {
@@ -212,6 +236,8 @@ else
   IniWrite, %调色盘笔刷大小%, 色轮设置.ini, 设置, 调色盘笔刷大小
   软件Class名:=0
   IniWrite, %软件Class名%, 色轮设置.ini, 设置, 软件Class名
+  中键呼出:=0
+  IniWrite, %中键呼出%, 色轮设置.ini, 设置, 中键呼出
   ; PSwinclass:="ahk_class OWL.Dock"
   ; IniWrite, %PSwinclass%, 色轮设置.ini, 设置, PS取色窗口
   goto 初始设置
@@ -879,15 +905,32 @@ Home & End::ExitApp
 退出软件:
 ExitApp
 
+中键呼出:
+if (中键呼出=0)
+{
+  Menu, Tray, Check, 中键呼出 ;右键菜单打勾
+  中键呼出:=1
+  IniWrite, %中键呼出%, 色轮设置.ini, 设置, 中键呼出
+  Hotkey, MButton, On
+}
+else
+{
+  Menu, Tray, UnCheck, 中键呼出 ;右键菜单不打勾
+  中键呼出:=0
+  IniWrite, %中键呼出%, 色轮设置.ini, 设置, 中键呼出
+  Hotkey, MButton, Off
+}
+return
+
 色环矫正:
 if (色环矫正=0)
 {
   Menu, Tray, Check, 色环矫正 ;右键菜单打勾
   色环矫正:=1
-  Hotkey, Up, 上
-  Hotkey, Down, 下
-  Hotkey, Left, 左
-  Hotkey, Right, 右
+  Hotkey, Up, On
+  Hotkey, Down, On
+  Hotkey, Left, On
+  Hotkey, Right, On
 }
 else
 {
@@ -976,7 +1019,7 @@ ToBase(n,b){
     return (n < b ? "" : ToBase(n//b,b)) . ((d:=Mod(n,b)) < 10 ? d : Chr(d+55))
 }
 
-$MButton:: ;中键
+中键:
 $Tab:: ;Tab键
 CoordMode, Mouse, Screen
 MouseGetPos, 鼠标在屏幕位置X, 鼠标在屏幕位置Y, CSP检测
@@ -1020,6 +1063,7 @@ if (鼠标在屏幕位置X<画布左上角X) or (鼠标在屏幕位置X>画布�
 }
 
  ;在画布范围
+WinActivate, ahk_exe CLIPStudioPaint.exe ;窗口置于顶层
 BlockInput, On
 CoordMode, Pixel, Screen
 
@@ -1735,6 +1779,7 @@ else if (色板位置=2)
  ;关闭色轮并移动画布至原始位置
 CoordMode, Mouse, Screen
 MouseGetPos, 鼠标在屏幕位置X, 鼠标在屏幕位置Y
+WinActivate, ahk_exe CLIPStudioPaint.exe ;窗口置于顶层
 BlockInput, On
 BlockInput, MouseMove
 Send {LButton Up} ;结束取色
@@ -2076,7 +2121,7 @@ if (Alt键2!=0)
   Send {Alt Down}
   Sleep 10
 }
-Send {%快捷键2% Down} ;打开色轮
+Send {%快捷键2% Down} ;打开调色盘
 Sleep 50
 Send {%快捷键2% Up}
 if (Ctrl键2!=0)
@@ -2120,14 +2165,6 @@ if (简体中文=1)
         return
       }
       
-      if (呼出调色盘=1)
-      {
-        goto 呼出PS取色
-      }
-      else
-      {
-        呼出调色盘:=1
-      }
       Send {LButton Up}
       Sleep 10
       if (Ctrl键2!=0)
@@ -2192,14 +2229,6 @@ else
         return
       }
       
-      if (呼出调色盘=1)
-      {
-        goto 呼出PS取色
-      }
-      else
-      {
-        呼出调色盘:=1
-      }
       Send {LButton Up}
       Sleep 10
       if (Ctrl键2!=0)
@@ -2217,7 +2246,7 @@ else
         Send {Alt Down}
         Sleep 10
       }
-      Send {%快捷键2% Down} ;打开色轮
+      Send {%快捷键2% Down} ;打开调色盘
       Sleep 50
       Send {%快捷键2% Up}
       if (Ctrl键2!=0)
