@@ -156,18 +156,24 @@ IfExist, %A_ScriptDir%\色轮设置.ini ;如果配置文件存在则读取
   }
   IniRead, 初始设置, 色轮设置.ini, 设置, 初始设置
   IniRead, 中键呼出, 色轮设置.ini, 设置, 中键呼出
-  Hotkey, MButton, 中键
+  Hotkey, $MButton, 中键
+  Hotkey, $WheelUp, 滚轮上
+  Hotkey, $WheelDown, 滚轮下
   if (中键呼出=1)
   {
     Menu, Tray, Check, 中键呼出 ;右键菜单打勾
     IniWrite, %中键呼出%, 色轮设置.ini, 设置, 中键呼出
     Hotkey, MButton, On
+    Hotkey, $WheelUp, On
+    Hotkey, $WheelDown, On
   }
   else
   {
     Menu, Tray, UnCheck, 中键呼出 ;右键菜单不打勾
     IniWrite, %中键呼出%, 色轮设置.ini, 设置, 中键呼出
     Hotkey, MButton, Off
+    Hotkey, $WheelUp, Off
+    Hotkey, $WheelDown, Off
   }
   
   Hotkey, Up, 上
@@ -912,6 +918,8 @@ if (中键呼出=0)
   中键呼出:=1
   IniWrite, %中键呼出%, 色轮设置.ini, 设置, 中键呼出
   Hotkey, MButton, On
+  Hotkey, $WheelUp, On
+  Hotkey, $WheelDown, On
 }
 else
 {
@@ -919,6 +927,8 @@ else
   中键呼出:=0
   IniWrite, %中键呼出%, 色轮设置.ini, 设置, 中键呼出
   Hotkey, MButton, Off
+  Hotkey, $WheelUp, Off
+  Hotkey, $WheelDown, Off
 }
 return
 
@@ -2753,7 +2763,7 @@ else
 }
 return
 
-$WheelUp::
+滚轮上:
 if (色轮=0) and (色相慢左旋!=1)
 {
   Send {WheelUp}
@@ -2834,7 +2844,7 @@ BlockInput MouseMoveOff
 色相慢左旋:=0
 return
 
-$WheelDown::
+滚轮下:
 if (色轮=0) and (色相慢右旋!=1)
 {
   Send {WheelDown}
