@@ -423,6 +423,7 @@ else
         排除标题.=WinTitle
         IniWrite, %排除标题%, 色轮设置.ini, 设置, 简体中文排除标题
         排除名单:=StrSplit(排除标题, "|")
+        名单数量:=排除名单.Count()
       }
       else
       {
@@ -430,6 +431,7 @@ else
         排除标题.=WinTitle
         IniWrite, %排除标题%, 色轮设置.ini, 设置, 繁体中文排除标题
         排除名单:=StrSplit(排除标题, "|")
+        名单数量:=排除名单.Count()
       }
       ToolTip 当前窗口标题 %WinTitle% 未在排除列表内 已经自动为您添加`n%排除标题%
     }
