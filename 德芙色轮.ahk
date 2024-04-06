@@ -157,9 +157,12 @@ IfExist, %A_ScriptDir%\色轮设置.ini ;如果配置文件存在则读取
     IniRead, 排除标题, 色轮设置.ini, 设置, 繁体中文排除标题
   }
   排除名单:=StrSplit(排除标题, "|")
+  名单数量:=排除名单.Count()
+  ; MsgBox %名单数量%
+  /*
   字符数量:=StrLen(排除标题)
   名单数量:=1
-  loop %字符数量%
+  loop %字符数量% length
   {
     if (A_Index>字符数量)
     {
@@ -173,6 +176,7 @@ IfExist, %A_ScriptDir%\色轮设置.ini ;如果配置文件存在则读取
       }
     }
   }
+  */
   
   IniRead, 记忆模式, 色轮设置.ini, 设置, 记忆模式
   if (记忆模式=1)
@@ -418,12 +422,14 @@ else
         排除标题.=|
         排除标题.=WinTitle
         IniWrite, %排除标题%, 色轮设置.ini, 设置, 简体中文排除标题
+        排除名单:=StrSplit(排除标题, "|")
       }
       else
       {
         排除标题.="|"
         排除标题.=WinTitle
         IniWrite, %排除标题%, 色轮设置.ini, 设置, 繁体中文排除标题
+        排除名单:=StrSplit(排除标题, "|")
       }
       ToolTip 当前窗口标题 %WinTitle% 未在排除列表内 已经自动为您添加`n%排除标题%
     }
@@ -452,7 +458,7 @@ if (软件前台!=0x0)
   CoordMode, Mouse, Screen
   CoordMode, Pixel, Screen
   MouseGetPos, MX, MY, WinID
-  if (计时器!=0) and (MY<=屏幕高度/30)
+  if (计时器!=0) and (MY<=屏幕高度/30) and (排除=0)
   {
     耗时:=A_TickCount-计时器
   }
@@ -461,11 +467,11 @@ if (软件前台!=0x0)
     计时器:=0
   }
   
-  if (MY<=屏幕高度/30) and (菜单隐藏=1) and (计时器=0)
+  if (MY<=屏幕高度/30) and (菜单隐藏=1) and (计时器=0) and (排除=0)
   {
     计时器:=A_TickCount
   }
-  else if (MY<=屏幕高度/30) and (菜单隐藏=1) and (耗时>300)
+  else if (MY<=屏幕高度/30) and (菜单隐藏=1) and (耗时>300) and (排除=0)
   {
     Send {Shift Down}
     Sleep 100
@@ -563,7 +569,7 @@ if (软件前台!=0x0)
     }
     延迟执行:=0
   }
-  else if (MY>屏幕高度/20) and (菜单隐藏=0) and (延迟执行=0)
+  else if (MY>屏幕高度/20) and (菜单隐藏=0) and (延迟执行=0) and (排除=0)
   {
     计时器:=0
     Send {Shift Down}
@@ -656,54 +662,40 @@ if (软件前台!=0x0)
     
     ; ToolTip 隐藏面板XL%隐藏面板XL% MX%MX% 隐藏面板XR%隐藏面板XR%`n隐藏面板XL1 %隐藏面板XL1% 隐藏面板XL2 %隐藏面板XL2%`n隐藏面板XR1 %隐藏面板XR1% 隐藏面板XR2 %隐藏面板XR2%
     
-    if (MX<=A_ScreenWidth/30) or (MX>=A_ScreenWidth-A_ScreenWidth/30) ;展开面板
+    if (MX<=A_ScreenWidth/30) or (MX>=A_ScreenWidth-A_ScreenWidth/30) and (排除=0) ;展开面板
     {
       loop
       {
-        if (排除=1)
+        ImageSearch, , , 0, 0, A_ScreenWidth, 屏幕高度, *10 %A_ScriptDir%\全屏识别.png
+        if (ErrorLevel=1)
         {
-          Sleep 30
+          Send {Tab Down}
+          Sleep 50
+          Send {Tab Up}
+          Sleep 150
         }
-        else
+        else if (ErrorLevel=0)
         {
-          ImageSearch, , , 0, 0, A_ScreenWidth, 屏幕高度, *10 %A_ScriptDir%\全屏识别.png
-          if (ErrorLevel=1)
-          {
-            Send {Tab Down}
-            Sleep 50
-            Send {Tab Up}
-            Sleep 150
-          }
-          else if (ErrorLevel=0)
-          {
-            break
-          }
+          break
         }
       }
       面板自动展开:=1
     }
-    else if (MX>=隐藏面板XL) and (MX<=隐藏面板XR) ;隐藏面板
+    else if (MX>=隐藏面板XL) and (MX<=隐藏面板XR) and (排除=0) ;隐藏面板
     {
       loop
       {
-        if (排除=1)
+        ImageSearch, , , A_ScreenWidth/20, 0, A_ScreenWidth-A_ScreenWidth/20, 屏幕高度/10, *10 %A_ScriptDir%\全屏识别.png
+        if (ErrorLevel=0)
         {
-          Sleep 30
+          Send {Tab Down}
+          Sleep 50
+          Send {Tab Up}
+          Sleep 150
         }
-        else
+        else if (ErrorLevel=1)
         {
-          ImageSearch, , , A_ScreenWidth/20, 0, A_ScreenWidth-A_ScreenWidth/20, 屏幕高度/10, *10 %A_ScriptDir%\全屏识别.png
-          if (ErrorLevel=0)
-          {
-            Send {Tab Down}
-            Sleep 50
-            Send {Tab Up}
-            Sleep 150
-          }
-          else if (ErrorLevel=1)
-          {
-            break
-          }
+          break
         }
       }
       面板自动展开:=0
