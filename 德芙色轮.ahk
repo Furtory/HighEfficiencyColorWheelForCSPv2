@@ -57,6 +57,7 @@ Menu, Tray, Add, 退出软件, 退出软件 ;添加新的右键菜单
 延迟执行:=0
 面板自动展开:=0
 软件Class名:=0
+计时器:=0
 
 if (A_ScreenHeight<1440)
 {
@@ -144,11 +145,35 @@ IfExist, %A_ScriptDir%\色轮设置.ini ;如果配置文件存在则读取
   快捷键2:=StrReplace(快捷键2,"^")
   快捷键2:=StrReplace(快捷键2,"+")
   快捷键2:=StrReplace(快捷键2,"!")
+  
   IniRead, 简体中文, 色轮设置.ini, 设置, 简体中文
   if (简体中文=1)
   {
+    IniRead, 排除标题, 色轮设置.ini, 设置, 简体中文排除标题
     Menu, Tray, Check, 简体中文 ;右键菜单打勾
   }
+  else
+  {
+    IniRead, 排除标题, 色轮设置.ini, 设置, 繁体中文排除标题
+  }
+  排除名单:=StrSplit(排除标题, "|")
+  字符数量:=StrLen(排除标题)
+  名单数量:=1
+  loop %字符数量%
+  {
+    if (A_Index>字符数量)
+    {
+      break
+    }
+    else
+    {
+      if (SubStr(排除标题, A_Index, 1)="|")
+      {
+        名单数量:=名单数量+1
+      }
+    }
+  }
+  
   IniRead, 记忆模式, 色轮设置.ini, 设置, 记忆模式
   if (记忆模式=1)
   {
@@ -244,6 +269,10 @@ else
   IniWrite, %软件Class名%, 色轮设置.ini, 设置, 软件Class名
   中键呼出:=0
   IniWrite, %中键呼出%, 色轮设置.ini, 设置, 中键呼出
+  简体中文排除标题:="画布大小|插入区域|删除区域|自动阴影|高斯模糊|顏色设置"
+  IniWrite, %简体中文排除标题%, 色轮设置.ini, 设置, 简体中文排除标题
+  繁体中文排除标题:="變更畫布尺寸|插入畫布的區域|刪除畫布的區域|自動陰影|高斯模糊|顏色設定"
+  IniWrite, %繁体中文排除标题%, 色轮设置.ini, 设置, 繁体中文排除标题
   ; PSwinclass:="ahk_class OWL.Dock"
   ; IniWrite, %PSwinclass%, 色轮设置.ini, 设置, PS取色窗口
   goto 初始设置
@@ -345,10 +374,73 @@ Class 后台 {
   ;-- 类结束
 }
 
+窗口检定(){
+  global
+  
+  排除:=0
+  loop %名单数量%
+  {
+    当前标题:=排除名单[A_Index]
+    ; ToolTip %A_Index% %当前标题%
+    ; sleep 400
+    检定ID:=WinActive(当前标题)
+    if !(WinActive(当前标题)=0)
+    {
+      排除:=1
+      ; ToolTip %当前标题% %检定ID% 已激活
+      return
+    }
+  }
+  return
+}
+
+~lbutton::
+MouseGetPos, , , WinID
+WinGet, ExeName, ProcessName, ahk_id %WinID% ;ahk_exe CLIPStudioPaint.exe
+WinGetTitle, WinTitle, ahk_id %WinID%
+if (WinTitle="CLIP STUDIO PAINT")
+{
+  ToolTip
+  return
+}
+else
+{
+  if (ExeName!="CLIPStudioPaint.exe")
+  {
+    return
+  }
+  else
+  {
+    if (InStr(排除标题, WinTitle)=0)
+    {
+      if (简体中文=1)
+      {
+        排除标题.=|
+        排除标题.=WinTitle
+        IniWrite, %排除标题%, 色轮设置.ini, 设置, 简体中文排除标题
+      }
+      else
+      {
+        排除标题.="|"
+        排除标题.=WinTitle
+        IniWrite, %排除标题%, 色轮设置.ini, 设置, 繁体中文排除标题
+      }
+      ToolTip 当前窗口标题 %WinTitle% 未在排除列表内 已经自动为您添加`n%排除标题%
+    }
+    SetTimer, 重新检定, -300
+  }
+}
+return
+
+重新检定:
+窗口检定()
+return
+
 自动隐藏菜单:
+; ToolTip %排除%, , , 2
 MouseGetPos, , , WinID
 WinGetClass, 当前界面Class名, ahk_id %WinID%
-if GetKeyState("LButton", "P") or GetKeyState("Tab", "P") or GetKeyState("Ctrl", "P") or GetKeyState("Shift", "P") or GetKeyState("Alt", "P") or (色轮=1) or (当前界面Class名!=软件Class名)
+if GetKeyState("LButton", "P") or GetKeyState("Tab", "P") or GetKeyState("Ctrl", "P") or GetKeyState("Shift", "P") or GetKeyState("Alt", "P") or GetKeyState("1", "P") or GetKeyState("2", "P") or GetKeyState("3", "P") or GetKeyState("4", "P") or (色轮=1) or (当前界面Class名!=软件Class名)
 {
   return
 }
@@ -356,10 +448,24 @@ if GetKeyState("LButton", "P") or GetKeyState("Tab", "P") or GetKeyState("Ctrl",
 软件前台:=WinActive("ahk_exe CLIPStudioPaint.exe")
 if (软件前台!=0x0)
 {
+  窗口检定()
   CoordMode, Mouse, Screen
   CoordMode, Pixel, Screen
   MouseGetPos, MX, MY, WinID
-  if (MY<=屏幕高度/30) and (菜单隐藏=1)
+  if (计时器!=0) and (MY<=屏幕高度/30)
+  {
+    耗时:=A_TickCount-计时器
+  }
+  else if (MY>屏幕高度/20)
+  {
+    计时器:=0
+  }
+  
+  if (MY<=屏幕高度/30) and (菜单隐藏=1) and (计时器=0)
+  {
+    计时器:=A_TickCount
+  }
+  else if (MY<=屏幕高度/30) and (菜单隐藏=1) and (耗时>300)
   {
     Send {Shift Down}
     Sleep 100
@@ -423,7 +529,7 @@ if (软件前台!=0x0)
       {
         if (简体中文=1)
         {
-          if !(WinExist("画布大小")=0) or !(WinExist("插入区域")=0) or !(WinExist("删除区域")=0) or !(WinExist("自动阴影")=0)
+          if (排除=1)
           {
             延迟执行:=1
           }
@@ -434,7 +540,7 @@ if (软件前台!=0x0)
         }
         else
         {
-          if !(WinExist("變更畫布尺寸")=0) or !(WinExist("插入畫布的區域")=0) or !(WinExist("刪除畫布的區域")=0) or !(WinExist("自動陰影")=0)
+          if (排除=1)
           {
             延迟执行:=1
           }
@@ -459,6 +565,7 @@ if (软件前台!=0x0)
   }
   else if (MY>屏幕高度/20) and (菜单隐藏=0) and (延迟执行=0)
   {
+    计时器:=0
     Send {Shift Down}
     loop
     {
@@ -553,7 +660,7 @@ if (软件前台!=0x0)
     {
       loop
       {
-        if !(WinExist("顏色設定")=0)
+        if (排除=1)
         {
           Sleep 30
         }
@@ -579,7 +686,7 @@ if (软件前台!=0x0)
     {
       loop
       {
-        if !(WinExist("顏色設定")=0)
+        if (排除=1)
         {
           Sleep 30
         }
@@ -2586,14 +2693,21 @@ if (色轮=0)
     
     if (A_Index=1)
     {
-      Sleep 200
+      loop 20
+      {
+        if !GetKeyState("1", "P")
+        {
+          break
+        }
+        Sleep 20
+      }
     }
     
-    if !GetKeyState("w", "P")
+    if !GetKeyState("1", "P")
     {
       break
     }
-    else if GetKeyState("w", "P")
+    else if GetKeyState("1", "P")
     {
       Sleep 50
     }
@@ -2612,7 +2726,14 @@ if (色轮=0)
     
     if (A_Index=1)
     {
-      Sleep 200
+      loop 20
+      {
+        if !GetKeyState("2", "P")
+        {
+          break
+        }
+        Sleep 20
+      }
     }
     
     if !GetKeyState("2", "P")
@@ -2638,7 +2759,14 @@ if (色轮=0)
     
     if (A_Index=1)
     {
-      Sleep 200
+      loop 20
+      {
+        if !GetKeyState("3", "P")
+        {
+          break
+        }
+        Sleep 20
+      }
     }
     
     if !GetKeyState("3", "P")
@@ -2664,7 +2792,14 @@ if (色轮=0)
     
     if (A_Index=1)
     {
-      Sleep 200
+      loop 20
+      {
+        if !GetKeyState("4", "P")
+        {
+          break
+        }
+        Sleep 20
+      }
     }
     
     if !GetKeyState("4", "P")
