@@ -38,8 +38,9 @@ Menu, Tray, Add, 快捷设置, 快捷设置 ;添加新的右键菜单
 Menu, Tray, Add, 色环矫正, 色环矫正 ;添加新的右键菜单
 Menu, Tray, Add, 重置设置, 初始设置 ;添加新的右键菜单
 Menu, Tray, Add
-Menu, Tray, Add, 中键呼出, 中键呼出 ;添加新的右键菜单
 Menu, Tray, Add, 简体中文, 语言设置 ;添加新的右键菜单
+Menu, Tray, Add, 导航穿透, 导航穿透 ;添加新的右键菜单
+Menu, Tray, Add, 中键呼出, 中键呼出 ;添加新的右键菜单
 Menu, Tray, Add, 记忆模式, 记忆模式 ;添加新的右键菜单
 Menu, Tray, Add, 开机自启, 开机自启 ;添加新的右键菜单
 Menu, Tray, Add
@@ -58,6 +59,7 @@ Menu, Tray, Add, 退出软件, 退出软件 ;添加新的右键菜单
 面板自动展开:=0
 软件Class名:=0
 计时器:=0
+导航穿透:=0
 
 if (A_ScreenHeight<1440)
 {
@@ -137,6 +139,7 @@ IfExist, %A_ScriptDir%\色轮设置.ini ;如果配置文件存在则读取
   快捷键1:=StrReplace(快捷键1,"^")
   快捷键1:=StrReplace(快捷键1,"+")
   快捷键1:=StrReplace(快捷键1,"!")
+  
   IniRead, 调色盘呼出快捷键, 色轮设置.ini, 设置, 调色盘呼出快捷键
   快捷键2:=调色盘呼出快捷键
   Ctrl键2:=InStr(快捷键2, "^")
@@ -145,6 +148,16 @@ IfExist, %A_ScriptDir%\色轮设置.ini ;如果配置文件存在则读取
   快捷键2:=StrReplace(快捷键2,"^")
   快捷键2:=StrReplace(快捷键2,"+")
   快捷键2:=StrReplace(快捷键2,"!")
+  
+  IniRead, 导航器呼出快捷键, 色轮设置.ini, 设置, 导航器呼出快捷键 ;写入设置到ini文件
+  ; Hotkey, %导航器呼出快捷键%, 导航器呼出快捷键, On
+  快捷键3:=导航器呼出快捷键
+  Ctrl键3:=InStr(快捷键3, "^")
+  Shift键3:=InStr(快捷键3, "+")
+  Alt键3:=InStr(快捷键3, "!")
+  快捷键3:=StrReplace(快捷键3,"^")
+  快捷键3:=StrReplace(快捷键3,"+")
+  快捷键3:=StrReplace(快捷键3,"!")
   
   IniRead, 简体中文, 色轮设置.ini, 设置, 简体中文
   if (简体中文=1)
@@ -402,7 +415,8 @@ Class 后台 {
 MouseGetPos, , , WinID
 WinGet, ExeName, ProcessName, ahk_id %WinID% ;ahk_exe CLIPStudioPaint.exe
 WinGetTitle, WinTitle, ahk_id %WinID%
-if (WinTitle="CLIP STUDIO PAINT")
+WinGetClass, WinClass, ahk_id %WinID%
+if (WinTitle="CLIP STUDIO PAINT") or (WinTitle="導航器") or (WinTitle="色環") or (WinTitle="色彩混合") or (WinClass="Photoshop") or (WinClass="OWL.Dock") or (WinClass="PSFloatC")
 {
   ToolTip
   return
@@ -605,65 +619,6 @@ if (软件前台!=0x0)
   
   if (面板展开=0) and (MY>屏幕高度/20)
   {
-    CoordMode, Pixel, Screen
-    ImageSearch, 隐藏面板XL1, , A_ScreenWidth/15, 0, A_ScreenWidth/2, 屏幕高度/10, *10 %A_ScriptDir%\全屏识别.png
-    if (ErrorLevel=1)
-    {
-      隐藏面板XL1:=Round(A_ScreenWidth/15)
-    }
-    else if (ErrorLevel=0)
-    {
-      隐藏面板XL1:=隐藏面板XL1+Round(23/1080*屏幕高度)
-    }
-    ImageSearch, 隐藏面板XL2, , A_ScreenWidth/15, 0, A_ScreenWidth/2, 屏幕高度/10, *10 %A_ScriptDir%\右箭头.png
-    if (ErrorLevel=1)
-    {
-      隐藏面板XL2:=Round(A_ScreenWidth/15)
-    }
-    else if (ErrorLevel=0)
-    {
-      隐藏面板XL2:=隐藏面板XL2+Round(20/1080*屏幕高度)
-    }
-    
-    if (隐藏面板XL1<隐藏面板XL2)
-    {
-      隐藏面板XL:=Round(隐藏面板XL2)
-    }
-    else
-    {
-      隐藏面板XL:=Round(隐藏面板XL1)
-    }
-    
-    ImageSearch, 隐藏面板XR1, , A_ScreenWidth/2, 0, A_ScreenWidth-A_ScreenWidth/15, 屏幕高度/10, *10 %A_ScriptDir%\全屏识别.png
-    if (ErrorLevel=1)
-    {
-      隐藏面板XR1:=Round(A_ScreenWidth-A_ScreenWidth/15)
-    }
-    else if (ErrorLevel=0)
-    {
-      隐藏面板XR1:=隐藏面板XR1-Round(18/1080*屏幕高度)
-    }
-    ImageSearch, 隐藏面板XR2, , A_ScreenWidth/2, 0, A_ScreenWidth-A_ScreenWidth/15, 屏幕高度/10, *10 %A_ScriptDir%\左箭头.png
-    if (ErrorLevel=1)
-    {
-      隐藏面板XR2:=Round(A_ScreenWidth-A_ScreenWidth/15)
-    }
-    else if (ErrorLevel=0)
-    {
-      隐藏面板XR2:=隐藏面板XR2-Round(18/1080*屏幕高度)
-    }
-    
-    if (隐藏面板XR1>隐藏面板XR2)
-    {
-      隐藏面板XR:=Round(隐藏面板XR2)
-    }
-    else
-    {
-      隐藏面板XR:=Round(隐藏面板XR1)
-    }
-    
-    ; ToolTip 隐藏面板XL%隐藏面板XL% MX%MX% 隐藏面板XR%隐藏面板XR%`n隐藏面板XL1 %隐藏面板XL1% 隐藏面板XL2 %隐藏面板XL2%`n隐藏面板XR1 %隐藏面板XR1% 隐藏面板XR2 %隐藏面板XR2%
-    
     if (MX<=A_ScreenWidth/30) or (MX>=A_ScreenWidth-A_ScreenWidth/30) and (排除=0) ;展开面板
     {
       loop
@@ -674,7 +629,7 @@ if (软件前台!=0x0)
           Send {Tab Down}
           Sleep 50
           Send {Tab Up}
-          Sleep 150
+          Sleep 250
         }
         else if (ErrorLevel=0)
         {
@@ -682,6 +637,135 @@ if (软件前台!=0x0)
         }
       }
       面板自动展开:=1
+      
+      ;自动识别面板位置
+      CoordMode, Pixel, Screen
+      ImageSearch, 隐藏面板XL1, , A_ScreenWidth/15, 0, A_ScreenWidth/2, 屏幕高度/10, *10 %A_ScriptDir%\全屏识别.png
+      if (ErrorLevel=1)
+      {
+        隐藏面板XL1:=Round(A_ScreenWidth/15)
+      }
+      else if (ErrorLevel=0)
+      {
+        隐藏面板XL1:=隐藏面板XL1+Round(23/1080*屏幕高度)
+      }
+      
+      ImageSearch, 隐藏面板XL2, , A_ScreenWidth/15, 0, A_ScreenWidth/2, 屏幕高度/10, *10 %A_ScriptDir%\右箭头.png
+      if (ErrorLevel=1)
+      {
+        隐藏面板XL2:=Round(A_ScreenWidth/15)
+      }
+      else if (ErrorLevel=0)
+      {
+        隐藏面板XL2:=隐藏面板XL2+Round(20/1080*屏幕高度)
+      }
+      
+      if (隐藏面板XL1<隐藏面板XL2)
+      {
+        隐藏面板XL:=Round(隐藏面板XL2)
+      }
+      else
+      {
+        隐藏面板XL:=Round(隐藏面板XL1)
+      }
+      
+      ImageSearch, 隐藏面板XR1, , A_ScreenWidth/2, 0, A_ScreenWidth-A_ScreenWidth/15, 屏幕高度/10, *10 %A_ScriptDir%\全屏识别.png
+      if (ErrorLevel=1)
+      {
+        隐藏面板XR1:=Round(A_ScreenWidth-A_ScreenWidth/15)
+      }
+      else if (ErrorLevel=0)
+      {
+        隐藏面板XR1:=隐藏面板XR1-Round(18/1080*屏幕高度)
+      }
+      
+      ImageSearch, 隐藏面板XR2, , A_ScreenWidth/2, 0, A_ScreenWidth-A_ScreenWidth/15, 屏幕高度/10, *10 %A_ScriptDir%\左箭头.png
+      if (ErrorLevel=1)
+      {
+        隐藏面板XR2:=Round(A_ScreenWidth-A_ScreenWidth/15)
+      }
+      else if (ErrorLevel=0)
+      {
+        隐藏面板XR2:=隐藏面板XR2-Round(18/1080*屏幕高度)
+      }
+      
+      if (隐藏面板XR1>隐藏面板XR2)
+      {
+        隐藏面板XR:=Round(隐藏面板XR2)
+      }
+      else
+      {
+        隐藏面板XR:=Round(隐藏面板XR1)
+      }
+      
+      ; ToolTip 隐藏面板XL%隐藏面板XL% MX%MX% 隐藏面板XR%隐藏面板XR%`n隐藏面板XL1 %隐藏面板XL1% 隐藏面板XL2 %隐藏面板XL2%`n隐藏面板XR1 %隐藏面板XR1% 隐藏面板XR2 %隐藏面板XR2%
+      
+      if (简体中文=1)
+      {
+        if !(WinActive("导航器")=0)
+        {
+          导航器:=1
+        }
+        else
+        {
+          导航器:=0
+        }
+      }
+      else if (简体中文!=1)
+      {
+        if !(WinActive("導航器")=0)
+        {
+          导航器:=1
+        }
+        else
+        {
+          导航器:=0
+        }
+      }
+      
+      if (导航器=1)
+      {
+        if (简体中文=1)
+        {
+          导航器ID:=WinActive("导航器")
+          ; ToolTip 导航器ID%导航器ID%
+          WinGetPos, 导航器X, 导航器Y, 导航器W, 导航器H, ahk_id %导航器ID%
+          if (导航器X<隐藏面板XL) and (导航器防遮挡=0)
+          {
+            导航器防遮挡:=1
+            WinMove, ahk_id %导航器ID%, , 隐藏面板XL+A_ScreenWidth/100, 导航器Y
+          }
+          else if (导航器X+导航器W>隐藏面板XR) and (导航器防遮挡=0)
+          {
+            导航器防遮挡:=1
+            WinMove, ahk_id %导航器ID%, , 隐藏面板XR-导航器W-A_ScreenWidth/100, 导航器Y
+          }
+          else
+          {
+            导航器防遮挡:=0
+          }
+        }
+        else if (简体中文!=1)
+        {
+          导航器ID:=WinActive("導航器")
+          WinGetPos, 导航器X, 导航器Y, 导航器W, 导航器H, ahk_id %导航器ID%
+          if (导航器X<隐藏面板XL) and (导航器防遮挡!=1)
+          {
+            导航器防遮挡:=1
+            原始导航器X:=导航器X
+            原始导航器Y:=导航器Y
+            WinMove, ahk_id %导航器ID%, , 隐藏面板XL+A_ScreenWidth/100, 导航器Y
+          }
+          else if (导航器X+导航器W>隐藏面板XR) and (导航器防遮挡!=1)
+          {
+            导航器防遮挡:=1
+            原始导航器X:=导航器X
+            原始导航器Y:=导航器Y
+            WinMove, ahk_id %导航器ID%, , 隐藏面板XR-导航器W-A_ScreenWidth/100, 导航器Y
+          }
+          ; ToolTip 导航器ID%导航器ID% 导航器防遮挡%导航器防遮挡%
+        }
+      }
     }
     else if (MX>=隐藏面板XL) and (MX<=隐藏面板XR) and (排除=0) ;隐藏面板
     {
@@ -693,7 +777,7 @@ if (软件前台!=0x0)
           Send {Tab Down}
           Sleep 50
           Send {Tab Up}
-          Sleep 150
+          Sleep 250
         }
         else if (ErrorLevel=1)
         {
@@ -701,6 +785,117 @@ if (软件前台!=0x0)
         }
       }
       面板自动展开:=0
+      
+      ; ToolTip %导航器%
+      if (导航器=1)
+      {
+        loop
+        {
+          if (Ctrl键3!=0)
+          {
+            Send {Ctrl Down}
+            Sleep 10
+          }
+          if (Shift键3!=0)
+          {
+            Send {Shift Down}
+            Sleep 10
+          }
+          if (Alt键3!=0)
+          {
+            Send {Alt Down}
+            Sleep 10
+          }
+          Send {%快捷键3% Down} ;打开色轮
+          Sleep 50
+          Send {%快捷键3% Up}
+          if (Ctrl键3!=0)
+          {
+            Send {Ctrl Up}
+          }
+          if (Shift键3!=0)
+          {
+            Send {Shift Up}
+          }
+          if (Alt键3!=0)
+          {
+            Send {Alt Up}
+          }
+          Sleep 150
+          
+          if (简体中文=1)
+          {
+            if (WinExist("导航器")!=0)
+            {
+              导航器:=0
+              
+              if (导航器防遮挡=1)
+              {
+                WinMove, ahk_id %导航器ID%, , 原始导航器X, 原始导航器Y
+                导航器防遮挡:=0
+              }
+              break
+            }
+          }
+          else if (简体中文!=1)
+          {
+            if (WinExist("導航器")!=0)
+            {
+              导航器:=0
+              
+              if (导航器防遮挡=1)
+              {
+                WinMove, ahk_id %导航器ID%, , 原始导航器X, 原始导航器Y
+                导航器防遮挡:=0
+              }
+              break
+            }
+          }
+        }
+      }
+    }
+  }
+}
+return
+
+导航穿透:
+if (简体中文=1)
+{
+  if (WinExist("导航器")!=0)
+  {
+    导航器ID:=WinExist("导航器")
+    if (导航穿透!=1)
+    {
+      导航穿透:=1
+      WinSet, ExStyle, +0x20, ahk_id %导航器ID%
+      Menu, Tray, Check, 导航穿透 ;右键菜单打勾
+    }
+    else
+    {
+      导航穿透:=0
+      WinSet, ExStyle, -0x20, ahk_id %导航器ID%
+      Menu, Tray, UnCheck, 导航穿透 ;右键菜单不打勾
+    }
+  }
+}
+else if (简体中文!=1)
+{
+  if (WinExist("導航器")!=0)
+  {
+    导航器ID:=WinExist("導航器")
+    if (导航穿透!=1)
+    {
+      导航穿透:=1
+      WinSet, Transparent, 200, ahk_id %导航器ID%
+      WinSet, ExStyle, +0x20, ahk_id %导航器ID%
+      Menu, Tray, Check, 导航穿透 ;右键菜单打勾
+    }
+    else
+    {
+      导航穿透:=0
+      WinSet, Transparent, 255, ahk_id %导航器ID%
+      WinSet, ExStyle, -0x20, ahk_id %导航器ID%
+      Menu, Tray, UnCheck, 导航穿透 ;右键菜单不打勾
     }
   }
 }
@@ -907,7 +1102,7 @@ ToolTip
 return
 
 使用教程:
-MsgBox, , 德芙色轮, 黑钨重工出品 免费开源 请勿商用 侵权必究`n更多免费软件教程尽在QQ群 1群763625227 2群643763519`n`n默认使用的是1080P屏幕 100`%缩放的设置`n如果是其他分辨率请自己设置或导入设置包`n`nCSP需要设置的内容`:`n请使用HSV色彩空间 在色轮左上角三条横线处点击即可设置`n画布设置的意思是 画布的多大范围内按下Tab或者中键才能呼出色轮`n呼出色轮的快捷键`n设置的位置在 文件`-快捷键设置`-主菜单`-窗口`-色環/色轮`n呼出调色盘的快捷键`n设置的位置在 文件`-快捷键设置`-主菜单`-窗口`-色彩混合/混色`n自动隐藏需要设置命令列的快捷键为Shift`+F3`nCtrl`+Enter键 短按打开自动隐藏功能 长按关闭自动隐藏功能`n`nPS需要设置的内容`:`n呼出前景色拾色器的快捷键为N`n设置的位置在 工具`-前景色拾色器`n`n数位板相关设置`:`n数位板属性中 关闭Windows Ink功能`nCSP环境设置中 绘图板`-要使用的绘图板服务`-Wintab`n`n按住Tab键 或 鼠标中键 触发德芙色轮`n如果取色环显示位置不准 请打开色环矫正后 使用上下左右箭头修正`nW 切换色板`nQ和E 或者 滚轮 控制色相慢速左旋和右旋`nA和D 控制色相快速左旋和右旋`nS 打开或关闭记忆模式`n每次打开色轮使用上次在色轮中取的色而不使用在画布上取的颜色`n松开Tab 或 鼠标中键 完成取色`n`n色轮打开后右移动即可打开调色盘`n当打开调色盘时使用以下快捷键操作`n重音符波浪号 清空调色盘`n数字1 短按撤回 长按还原`n数字2 和 数字3 控制笔刷大小`n数字4 切换笔刷样式`n`n其他功能`:`nAlt`+A`/D 切换上一个下一个画布`n以亮度为基准黑白显示需要系统设置`-轻松使用`-颜色滤镜`-允许使用快捷键打开滤镜`n双击空格 在亮度基准显示和正常显示之间切换`nPgUp`+PgDn 强制重启   Home`+End 强制退出`n`n更新后无法运行请删除ini文件后重新运行本软件`n如果仍然使用不了请私聊我付费远程调试服务
+MsgBox, , 德芙色轮, 黑钨重工出品 免费开源 请勿商用 侵权必究`n更多免费软件教程尽在QQ群 1群763625227 2群643763519`n`n默认使用的是1080P屏幕 100`%缩放的设置`n如果是其他分辨率请自己设置或导入设置包`n`nCSP需要设置的内容`:`n请使用HSV色彩空间 在色轮左上角三条横线处点击即可设置`n画布设置的意思是 画布的多大范围内按下Tab或者中键才能呼出色轮`n呼出色轮的快捷键`n设置的位置在 文件`-快捷键设置`-主菜单`-窗口`-色環/色轮`n呼出调色盘的快捷键`n设置的位置在 文件`-快捷键设置`-主菜单`-窗口`-色彩混合/混色`n自动隐藏需要设置命令列的快捷键为Shift`+F3`nCtrl`+Enter键 短按打开自动隐藏功能 长按关闭自动隐藏功能`n`nPS需要设置的内容`:`n呼出前景色拾色器的快捷键为N`n设置的位置在 工具`-前景色拾色器`n`n数位板相关设置`:`n数位板属性中 关闭Windows Ink功能`nCSP环境设置中 绘图板`-要使用的绘图板服务`-Wintab`n`n按住Tab键 或 鼠标中键 触发德芙色轮`n如果取色环显示位置不准 请打开色环矫正后 使用上下左右箭头修正`nW 切换色板`nQ和E 或者 滚轮 控制色相慢速左旋和右旋`nA和D 控制色相快速左旋和右旋`nS 打开或关闭记忆模式`n每次打开色轮使用上次在色轮中取的色而不使用在画布上取的颜色`n松开Tab 或 鼠标中键 完成取色`n`n色轮打开后右移动即可打开调色盘`n当打开调色盘时使用以下快捷键操作`n重音符波浪号 清空调色盘`n数字1 短按撤回 长按还原`n数字2 和 数字3 控制笔刷大小`n数字4 切换笔刷样式`n`n其他功能`:`nAlt`+A`/D 切换上一个下一个画布`n导航器穿透 打开后会以半透明显示 可以穿过导航器画画`n以亮度为基准黑白显示需要系统设置`-轻松使用`-颜色滤镜`-允许使用快捷键打开滤镜`n双击空格 在亮度基准显示和正常显示之间切换`nPgUp`+PgDn 强制重启   Home`+End 强制退出`n`n更新后无法运行请删除ini文件后重新运行本软件`n如果仍然使用不了请私聊我付费远程调试服务
 return
 
 视频教程:
@@ -919,21 +1114,29 @@ Run https://github.com/Furtory/HighEfficiencyColorWheelForCSPv2
 return
 
 快捷设置:
+if (WinExist("快捷键设置")!=0)
+{
+  WinActivate, 快捷键设置
+  return
+}
 if (初始设置=0)
 {
   MsgBox 0, 初始设置, 咱要知道CSP设置中呼出色轮和调色盘的快捷键是什么才能运行嗷`~如果没有设置请现在设置一个才能运行哦`!`n设置的位置在`:文件`-快捷键设置`-主菜单`-窗口`-色環/色轮 色彩混合/混色
 }
 旧色轮呼出快捷键:=色轮呼出快捷键
 旧调色盘呼出快捷键:=调色盘呼出快捷键
+旧导航器呼出快捷键:=导航器呼出快捷键
 Gui 快捷键:+DPIScale -MinimizeBox -MaximizeBox -Resize -SysMenu
 Gui 快捷键:Font, s9, Segoe UI
-Gui 快捷键:Add, Hotkey, x9 y31 w157 h25 v色轮呼出快捷键, %色轮呼出快捷键%
-Gui 快捷键:Add, Hotkey, x9 y92 w157 h25 v调色盘呼出快捷键, %调色盘呼出快捷键%
 Gui 快捷键:Add, Text, x9 y7 w157 h20, 色轮呼出快捷键
+Gui 快捷键:Add, Hotkey, x9 y31 w157 h25 v色轮呼出快捷键, %色轮呼出快捷键%
 Gui 快捷键:Add, Text, x9 y68 w157 h20, 调色盘呼出快捷键
-Gui 快捷键:Add, Button, x9 y126 w80 h23 GButton确认, &确认
-Gui 快捷键:Add, Button, x89 y126 w80 h23 GButton取消, &取消
-Gui 快捷键:Show, w174 h158, 快捷键设置
+Gui 快捷键:Add, Hotkey, x9 y92 w157 h25 v调色盘呼出快捷键, %调色盘呼出快捷键%
+Gui 快捷键:Add, Text, x9 y129 w157 h20, 导航器呼出快捷键
+Gui 快捷键:Add, Hotkey, x9 y153 w157 h25 v导航器呼出快捷键, %导航器呼出快捷键%
+Gui 快捷键:Add, Button, x9 y187 w80 h23 GButton确认, &确认
+Gui 快捷键:Add, Button, x89 y187 w80 h23 GButton取消, &取消
+Gui 快捷键:Show, w174 h237, 快捷键设置
 return
 
 Button确认:
@@ -947,6 +1150,7 @@ Alt键1:=InStr(快捷键1, "!")
 快捷键1:=StrReplace(快捷键1,"^")
 快捷键1:=StrReplace(快捷键1,"+")
 快捷键1:=StrReplace(快捷键1,"!")
+
 IniWrite, %调色盘呼出快捷键%, 色轮设置.ini, 设置, 调色盘呼出快捷键 ;写入设置到ini文件
 快捷键2:=调色盘呼出快捷键
 Ctrl键2:=InStr(快捷键2, "^")
@@ -955,6 +1159,16 @@ Alt键2:=InStr(快捷键2, "!")
 快捷键2:=StrReplace(快捷键2,"^")
 快捷键2:=StrReplace(快捷键2,"+")
 快捷键2:=StrReplace(快捷键2,"!")
+
+IniWrite, %导航器呼出快捷键%, 色轮设置.ini, 设置, 导航器呼出快捷键 ;写入设置到ini文件
+快捷键3:=导航器呼出快捷键
+Ctrl键3:=InStr(快捷键3, "^")
+Shift键3:=InStr(快捷键3, "+")
+Alt键3:=InStr(快捷键3, "!")
+快捷键3:=StrReplace(快捷键3,"^")
+快捷键3:=StrReplace(快捷键3,"+")
+快捷键3:=StrReplace(快捷键3,"!")
+
 if (初始设置=0)
 {
   初始设置:=1
@@ -964,10 +1178,9 @@ if (初始设置=0)
 return
 
 Button取消:
-GuiEscape:
-GuiClose:
 色轮呼出快捷键:=旧色轮呼出快捷键
 调色盘呼出快捷键:=旧调色盘呼出快捷键
+导航器呼出快捷键:=旧导航器呼出快捷键
 Gui, 快捷键:Destroy
 return
 
