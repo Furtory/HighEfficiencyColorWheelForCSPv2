@@ -33,13 +33,13 @@ Menu, Tray, Add, 使用教程, 使用教程 ;添加新的右键菜单
 Menu, Tray, Add, 视频教程, 视频教程 ;添加新的右键菜单
 Menu, Tray, Add, 软件更新, 软件更新 ;添加新的右键菜单
 Menu, Tray, Add
+Menu, Tray, Add, 简体中文, 语言设置 ;添加新的右键菜单
+Menu, Tray, Add, 穿透设置, 穿透设置 ;添加新的右键菜单
 Menu, Tray, Add, 画布设置, 画布设置 ;添加新的右键菜单
 Menu, Tray, Add, 快捷设置, 快捷设置 ;添加新的右键菜单
 Menu, Tray, Add, 色环矫正, 色环矫正 ;添加新的右键菜单
-Menu, Tray, Add, 重置设置, 初始设置 ;添加新的右键菜单
+Menu, Tray, Add, 重置设置, 重置设置 ;添加新的右键菜单
 Menu, Tray, Add
-Menu, Tray, Add, 简体中文, 语言设置 ;添加新的右键菜单
-Menu, Tray, Add, 导航穿透, 导航穿透 ;添加新的右键菜单
 Menu, Tray, Add, 中键呼出, 中键呼出 ;添加新的右键菜单
 Menu, Tray, Add, 记忆模式, 记忆模式 ;添加新的右键菜单
 Menu, Tray, Add, 开机自启, 开机自启 ;添加新的右键菜单
@@ -60,6 +60,7 @@ Menu, Tray, Add, 退出软件, 退出软件 ;添加新的右键菜单
 软件Class名:=0
 计时器:=0
 导航穿透:=0
+摸鱼穿透:=0
 
 if (A_ScreenHeight<1440)
 {
@@ -158,6 +159,10 @@ IfExist, %A_ScriptDir%\色轮设置.ini ;如果配置文件存在则读取
   快捷键3:=StrReplace(快捷键3,"^")
   快捷键3:=StrReplace(快捷键3,"+")
   快捷键3:=StrReplace(快捷键3,"!")
+  
+  IniRead, 导航器透明度, 色轮设置.ini, 设置, 导航器透明度 ;写入设置到ini文件
+  IniRead, 摸鱼窗口, 色轮设置.ini, 设置, 摸鱼窗口 ;写入设置到ini文件
+  IniRead, 摸鱼窗口透明度, 色轮设置.ini, 设置, 摸鱼窗口透明度 ;写入设置到ini文件
   
   IniRead, 简体中文, 色轮设置.ini, 设置, 简体中文
   if (简体中文=1)
@@ -290,6 +295,12 @@ else
   IniWrite, %简体中文排除标题%, 色轮设置.ini, 设置, 简体中文排除标题
   繁体中文排除标题:="變更畫布尺寸|插入畫布的區域|刪除畫布的區域|自動陰影|高斯模糊|顏色設定"
   IniWrite, %繁体中文排除标题%, 色轮设置.ini, 设置, 繁体中文排除标题
+  导航器透明度:=200
+  IniWrite, %导航器透明度%, 色轮设置.ini, 设置, 导航器透明度 ;写入设置到ini文件
+  摸鱼窗口:=0
+  IniWrite, %摸鱼窗口%, 色轮设置.ini, 设置, 摸鱼窗口 ;写入设置到ini文件
+  摸鱼窗口透明度:=200
+  IniWrite, %摸鱼窗口透明度%, 色轮设置.ini, 设置, 摸鱼窗口透明度 ;写入设置到ini文件
   ; PSwinclass:="ahk_class OWL.Dock"
   ; IniWrite, %PSwinclass%, 色轮设置.ini, 设置, PS取色窗口
   goto 初始设置
@@ -858,23 +869,72 @@ if (软件前台!=0x0)
 }
 return
 
-导航穿透:
+穿透设置:
+SetTimer, 自动隐藏菜单, Delete
+if (WinExist("穿透设置")!=0)
+{
+  WinActivate, 穿透设置
+  return
+}
+; MsgBox, %导航器透明度% %摸鱼窗口透明度%
+Gui 穿透设置:+DPIScale -MinimizeBox -MaximizeBox -Resize -SysMenu +AlwaysOnTop
+Gui 穿透设置:Font, s9, Segoe UI
+
+Gui 穿透设置:Add, Text, x20 y25 w120 h23 +0x200, 导航器透明度
+Gui 穿透设置:Add, CheckBox, x215 y25 w120 h23 G导航器穿透切换 Checked%导航穿透%, 窗口穿透
+Gui 穿透设置:Add, Slider, x13 y55 w278 h32 AltSubmit G导航器透明度调整 Range1-100 TickInterval5 ToolTip v导航器透明度, %导航器透明度%
+
+Gui 穿透设置:Add, Text, x20 y115 w120 h23 +0x200, 摸鱼窗口透明度
+Gui 穿透设置:Add, CheckBox, x215 y115 w120 h23 G摸鱼窗口穿透切换 Checked%摸鱼穿透%, 窗口穿透
+Gui 穿透设置:Add, Slider, x13 y145 w278 h32 AltSubmit G摸鱼窗口透明度调整 Range1-100 TickInterval5 ToolTip v摸鱼窗口透明度, %摸鱼窗口透明度%
+
+Gui 穿透设置:Add, Button, x206 y200 w80 h27 GButton确认2, &确认
+Gui 穿透设置:Add, Button, x20 y200 w120 h27 G设置摸鱼窗口, &设置摸鱼窗口
+
+Gui 穿透设置:Show, w303 h240, 穿透设置
+; SetTimer, 窗口调整, 100
+return
+
+导航器透明度调整:
+; ToolTip 导航器透明度%导航器透明度%
+IniWrite, %导航器透明度%, 色轮设置.ini, 设置, 导航器透明度
+导航器透明度转换:=Ceil(255*(导航器透明度/100))
 if (简体中文=1)
 {
   if (WinExist("导航器")!=0)
   {
     导航器ID:=WinExist("导航器")
-    if (导航穿透!=1)
+    WinSet, Transparent, %导航器透明度转换%, ahk_id %导航器ID%
+  }
+}
+else if (简体中文!=1)
+{
+  if (WinExist("導航器")!=0)
+  {
+    导航器ID:=WinExist("導航器")
+    WinSet, Transparent, %导航器透明度转换%, ahk_id %导航器ID%
+  }
+}
+return
+
+导航器穿透切换:
+导航器透明度转换:=Ceil(255*(导航器透明度/100))
+if (简体中文=1)
+{
+  if (WinExist("导航器")!=0)
+  {
+    导航器ID:=WinExist("导航器")
+    if (导航穿透=0)
     {
       导航穿透:=1
+      WinSet, Transparent, %导航器透明度转换%, ahk_id %导航器ID%
       WinSet, ExStyle, +0x20, ahk_id %导航器ID%
-      Menu, Tray, Check, 导航穿透 ;右键菜单打勾
     }
-    else
+    else ;if (导航穿透=1)
     {
       导航穿透:=0
+      WinSet, Transparent, 255, ahk_id %导航器ID%
       WinSet, ExStyle, -0x20, ahk_id %导航器ID%
-      Menu, Tray, UnCheck, 导航穿透 ;右键菜单不打勾
     }
   }
 }
@@ -883,22 +943,82 @@ else if (简体中文!=1)
   if (WinExist("導航器")!=0)
   {
     导航器ID:=WinExist("導航器")
-    if (导航穿透!=1)
+    if (导航穿透=0)
     {
       导航穿透:=1
-      WinSet, Transparent, 200, ahk_id %导航器ID%
+      WinSet, Transparent, %导航器透明度转换%, ahk_id %导航器ID%
       WinSet, ExStyle, +0x20, ahk_id %导航器ID%
-      Menu, Tray, Check, 导航穿透 ;右键菜单打勾
     }
-    else
+    else ;if (导航穿透=1)
     {
       导航穿透:=0
       WinSet, Transparent, 255, ahk_id %导航器ID%
       WinSet, ExStyle, -0x20, ahk_id %导航器ID%
-      Menu, Tray, UnCheck, 导航穿透 ;右键菜单不打勾
     }
   }
 }
+; ToolTip, 导航穿透%导航穿透%
+return
+
+摸鱼窗口透明度调整:
+IniWrite, %摸鱼窗口透明度%, 色轮设置.ini, 设置, 摸鱼窗口透明度
+摸鱼窗口透明度转换:=Ceil(255*(摸鱼窗口透明度/100))
+if (WinExist(ahk_class %摸鱼窗口%)!=0)
+{
+  摸鱼窗口ID:=WinExist(ahk_class %摸鱼窗口%)
+  WinSet, Transparent, %摸鱼窗口透明度转换%, ahk_class %摸鱼窗口%
+}
+return
+
+摸鱼窗口穿透切换:
+摸鱼窗口透明度转换:=Ceil(255*(摸鱼窗口透明度/100))
+if (WinExist(ahk_class %摸鱼窗口%)!=0)
+{
+  摸鱼窗口ID:=WinExist(ahk_class %摸鱼窗口%)
+  if (摸鱼穿透=0)
+  {
+    摸鱼穿透:=1
+    WinSet, AlwaysOnTop, On, ahk_class %摸鱼窗口%
+    WinSet, Transparent, %摸鱼窗口透明度转换%, ahk_class %摸鱼窗口%
+    WinSet, ExStyle, +0x20, ahk_class %摸鱼窗口%
+  }
+  else ;if (导航穿透=1)
+  {
+    摸鱼穿透:=0
+    WinSet, AlwaysOnTop, Off, ahk_class %摸鱼窗口%
+    WinSet, Transparent, 255, ahk_class %摸鱼窗口%
+    WinSet, ExStyle, -0x20, ahk_class %摸鱼窗口%
+  }
+}
+return
+
+设置摸鱼窗口:
+loop
+{
+  ToolTip 点击摸鱼窗口以绑定
+  if GetKeyState("LButton", "P")
+  {
+    break
+  }
+  Sleep 30
+}
+MouseGetPos, , ,摸鱼窗口ID
+WinGetClass, 摸鱼窗口, ahk_id %摸鱼窗口ID%
+IniWrite, %摸鱼窗口%, 色轮设置.ini, 设置, 摸鱼窗口 ;写入设置到ini文件
+loop 90
+{
+  ToolTip 已绑定%摸鱼窗口%窗口
+  Sleep 30
+}
+ToolTip
+return
+
+Button确认2:
+Gui, 穿透设置:Submit, NoHide
+Gui, 穿透设置:Destroy
+Sleep 300
+SetTimer, 自动隐藏菜单, 200
+; SetTimer, 窗口调整, Delete
 return
 
 初始设置:
@@ -924,6 +1044,10 @@ IfMsgBox Yes
 }
 goto 快捷设置
 return
+
+重置设置:
+FileDelete %A_ScriptDir%\色轮设置.ini
+Reload
 
 语言设置:
 if (简体中文=0)
